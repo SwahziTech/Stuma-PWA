@@ -2656,4 +2656,2678 @@ Just type naturally! What would you like to do?`,timestamp:new Date().toLocaleTi
       })
     ]
   });
-},b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{const{items:a,movements:c,addMovementsBatch:u,getStockSummary:d,staffName:f}=Vt(),m=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[g,_]=B.useState(m),[x,b]=B.useState(""),[w,E]=B.useState(""),[j,k]=B.useState([]),[A,L]=B.useState(!1),[W,H]=B.useState(""),[ne,Y]=B.useState("All"),[ae,fe]=B.useState(null),[xe,Ie]=B.useState(!1),[Be,M]=B.useState(null),ee=B.useMemo(()=>pg(a,c),[a,c]),le=B.useMemo(()=>{const T=new Set(a.map(N=>N.category));return["All",...Array.from(T)]},[a]);B.useEffect(()=>{if(s&&a.some(T=>T.id===s)){const T=a.find(N=>N.id===s);if(T){const N={};if(T.colors&&T.colors.length>0)for(const S of T.colors)N[S]=0;else N.Standard=0;k([{id:`sale-line-${Date.now()}`,itemId:T.id,quantities:N,note:""}]),t&&t();return}}if(j.length===0&&a.length>0){const T=ee[0]||a[0],N={};if(T.colors&&T.colors.length>0)for(const S of T.colors)N[S]=0;else N.Standard=0;k([{id:`sale-line-${Date.now()}`,itemId:T.id,quantities:N,note:""}])}},[s,a,ee]);const he=B.useMemo(()=>ee.filter(T=>{const N=ne==="All"||T.category===ne,S=T.name.toLowerCase().includes(W.toLowerCase())||T.category.toLowerCase().includes(W.toLowerCase());return N&&S}),[ee,ne,W]),Pe=T=>{fe(T),H(""),L(!0)},oe=T=>{if(!ae)return;const N={};if(T.colors&&T.colors.length>0)for(const S of T.colors)N[S]=0;else N.Standard=0;k(S=>S.map(D=>D.id===ae?{...D,itemId:T.id,quantities:N}:D)),L(!1),fe(null)},G=()=>{const T=new Set(j.map(D=>D.itemId)),N=a.find(D=>!T.has(D.id))||a[0],S={};if(N.colors&&N.colors.length>0)for(const D of N.colors)S[D]=0;else S.Standard=0;k(D=>[...D,{id:`sale-line-${Date.now()}-${Math.random().toString(36).slice(2,5)}`,itemId:N.id,quantities:S,note:""}])},ue=T=>{j.length<=1||k(N=>N.filter(S=>S.id!==T))},P=(T,N,S)=>{k(D=>D.map(F=>F.id!==T?F:{...F,quantities:{...F.quantities,[N]:Math.max(0,S)}}))},y=(T,N,S)=>{k(D=>D.map(F=>{if(F.id!==T)return F;const Z=F.quantities[N]||0;return{...F,quantities:{...F.quantities,[N]:Math.max(0,Z+S)}}}))},O=B.useMemo(()=>{let T=0,N=0,S=0;for(const D of j){const F=a.find(Z=>Z.id===D.itemId);if(F)for(const[Z,se]of Object.entries(D.quantities))se>0&&(T+=se,S++,F.unit==="sqm"&&F.pcs_per_sqm&&F.pcs_per_sqm>0&&(N+=se/F.pcs_per_sqm))}return{totalPcs:T,totalSqm:Number(N.toFixed(2)),count:S}},[j,a]),z=async T=>{if(T.preventDefault(),O.totalPcs<=0){alert("Please enter at least one quantity to sell / dispatch.");return}Ie(!0);const N=crypto.randomUUID?crypto.randomUUID():`sale-${Date.now()}`,S=[],D=[x?`Customer: ${x.trim()}`:null,w?`Destination: ${w.trim()}`:null].filter(Boolean).join(" | ");for(const Z of j){const se=a.find(we=>we.id===Z.itemId);if(se){for(const[we,V]of Object.entries(Z.quantities))if(V>0){const J=we==="Standard"?null:we;let ie=null;se.unit==="sqm"&&se.pcs_per_sqm&&se.pcs_per_sqm>0&&(ie=Number((V/se.pcs_per_sqm).toFixed(2)));const Ce=se.unit==="sqm"&&ie!==null?ie:V,ce=-Math.abs(Ce);S.push({item_id:se.id,type:"dispatch_out",color:J,quantity_pcs:V,quantity_sqm:ie,delta:ce,date:g,note:D||Z.note||"Sales Dispatch",batch_id:N})}}}const F=await u(S);if(Ie(!1),F){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#ef4444","#f97316","#3b82f6"]})}catch{}if(M({totalPcs:O.totalPcs,totalSqm:O.totalSqm,itemCount:S.length}),b(""),E(""),a.length>0){const Z=a[0],se={};if(Z.colors&&Z.colors.length>0)for(const we of Z.colors)se[we]=0;else se.Standard=0;k([{id:`sale-line-${Date.now()}`,itemId:Z.id,quantities:se,note:""}])}}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"16px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Sales / Dispatch (Deduct Stock)"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Record outgoing customer dispatches & sales to deduct from inventory"})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",padding:"6px 12px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:15,color:"var(--status-danger)"}),o.jsx("input",{type:"date",value:g,onChange:T=>_(T.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),Be&&o.jsxs("div",{className:"card",style:{background:"linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(15, 23, 42, 0.9))",borderColor:"rgba(239, 68, 68, 0.4)",padding:"16px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:24,color:"#ef4444"}),o.jsxs("div",{children:[o.jsx("div",{style:{fontWeight:700,fontSize:"14px",color:"#f87171"},children:"Sales Dispatch Recorded! Stock Deducted."}),o.jsxs("div",{style:{fontSize:"12px",color:"var(--text-secondary)"},children:["Deducted -",Be.totalPcs," pcs"," ",Be.totalSqm>0?`(-${Be.totalSqm} sqm)`:""," across"," ",Be.itemCount," item entries."]})]})]}),o.jsx("button",{onClick:()=>M(null),className:"btn btn-ghost btn-sm",style:{color:"var(--text-muted)"},children:"✕"})]}),o.jsx("div",{className:"card",style:{padding:"14px",background:"var(--bg-surface-card)"},children:o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"12px",fontWeight:600,color:"var(--text-secondary)",display:"block",marginBottom:"4px"},children:"Customer / Buyer Name (Optional)"}),o.jsx("input",{type:"text",className:"input-field",placeholder:"e.g. Salim Ali, Techno Construction...",value:x,onChange:T=>b(T.target.value),style:{fontSize:"13.5px"}})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"12px",fontWeight:600,color:"var(--text-secondary)",display:"block",marginBottom:"4px"},children:"Delivery Site / Truck Plate (Optional)"}),o.jsx("input",{type:"text",className:"input-field",placeholder:"e.g. Mikocheni Site, Truck T832...",value:w,onChange:T=>E(T.target.value),style:{fontSize:"13.5px"}})]})]})}),o.jsxs("form",{onSubmit:z,style:{display:"flex",flexDirection:"column",gap:"14px"},children:[j.map((T,N)=>{const S=a.find(J=>J.id===T.itemId);if(!S)return null;const D=d(S.id),F=S.unit==="sqm",Z=S.pcs_per_sqm!==null&&S.pcs_per_sqm>0,se=S.colors&&S.colors.length>0,we=Object.values(T.quantities).reduce((J,ie)=>J+ie,0),V=F&&Z?Number((we/S.pcs_per_sqm).toFixed(2)):null;return o.jsxs("div",{className:"card-elevated",style:{position:"relative",border:"1px solid var(--border-subtle)",padding:"16px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"8px",marginBottom:"12px"},children:[o.jsxs("button",{type:"button",onClick:()=>Pe(T.id),style:{background:"var(--bg-input)",border:"1px solid var(--border-subtle)",borderRadius:"var(--radius-md)",padding:"8px 12px",display:"flex",alignItems:"center",gap:"10px",textAlign:"left",cursor:"pointer",flex:1},children:[o.jsx("div",{style:{width:"32px",height:"32px",borderRadius:"6px",background:"rgba(239, 68, 68, 0.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0},children:o.jsx(Ka,{size:16,color:"#f87171"})}),o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{fontSize:"11px",color:"#f87171",fontWeight:600},children:["Item #",N+1," · ",S.category]}),o.jsxs("div",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc",display:"flex",alignItems:"center",gap:"6px"},children:[S.name,o.jsx(wc,{size:14,color:"var(--text-muted)"})]})]})]}),j.length>1&&o.jsx("button",{type:"button",onClick:()=>ue(T.id),className:"btn btn-ghost btn-sm",style:{color:"var(--status-danger)",padding:"6px 8px"},title:"Remove item",children:o.jsx(Yp,{size:16})})]}),o.jsxs("div",{style:{padding:"8px 12px",borderRadius:"var(--radius-md)",background:"var(--bg-surface)",border:"1px solid var(--border-subtle)",marginBottom:"12px",display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:"12px"},children:[o.jsxs("div",{style:{color:"var(--text-secondary)"},children:["Current In Stock:"," ",o.jsx("strong",{style:{color:"#f8fafc"},children:D?`${D.total_pcs} pcs`:"0 pcs"}),D&&D.total_sqm!==null&&o.jsxs("span",{style:{color:"var(--brand-400)",marginLeft:"4px"},children:["(",D.total_sqm," m²)"]})]}),F&&Z&&we>0&&o.jsxs("div",{style:{fontWeight:700,color:"#f87171"},children:["Deducting: -",V," sqm"]})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:(se?S.colors:["Standard"]).map(J=>{var ce;const ie=T.quantities[J]||0,Ce=((ce=D==null?void 0:D.by_color[J])==null?void 0:ce.pcs)||0;return o.jsxs("div",{style:{background:"var(--bg-input)",border:"1px solid var(--border-subtle)",borderRadius:"var(--radius-md)",padding:"10px 12px"},children:[o.jsx("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"6px"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[se?o.jsx(xr,{color:J,showCount:!1}):o.jsx("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:"Quantity to Deduct"}),o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["(Available: ",Ce," pcs)"]})]})}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>y(T.id,J,-10),className:"btn btn-secondary",style:{minWidth:"42px",padding:"0 8px",height:"44px",fontSize:"13px",fontWeight:700},children:"-10"}),o.jsx("button",{type:"button",onClick:()=>y(T.id,J,-1),className:"btn btn-secondary",style:{minWidth:"38px",padding:"0 6px",height:"44px",fontSize:"16px",fontWeight:700},children:"-"}),o.jsx("input",{type:"number",inputMode:"numeric",min:"0",step:"1",className:"input-field mono",style:{textAlign:"center",fontSize:"17px",fontWeight:700,height:"44px",minHeight:"44px",color:"#f87171"},value:ie===0?"":ie,placeholder:"0 pcs",onChange:Oe=>P(T.id,J,Oe.target.value===""?0:parseInt(Oe.target.value,10)||0)}),o.jsx("button",{type:"button",onClick:()=>y(T.id,J,1),className:"btn btn-secondary",style:{minWidth:"38px",padding:"0 6px",height:"44px",fontSize:"16px",fontWeight:700},children:"+"}),o.jsx("button",{type:"button",onClick:()=>y(T.id,J,10),className:"btn btn-secondary",style:{minWidth:"42px",padding:"0 8px",height:"44px",fontSize:"13px",fontWeight:700},children:"+10"})]}),o.jsxs("div",{className:"quick-chips",children:[o.jsx("button",{type:"button",className:"quick-chip",style:{color:"#f87171"},onClick:()=>y(T.id,J,20),children:"+20"}),o.jsx("button",{type:"button",className:"quick-chip",style:{color:"#f87171"},onClick:()=>y(T.id,J,50),children:"+50"}),o.jsx("button",{type:"button",className:"quick-chip",style:{color:"#f87171"},onClick:()=>y(T.id,J,100),children:"+100"})]})]},J)})})]},T.id)}),o.jsxs("button",{type:"button",onClick:G,className:"btn btn-secondary",style:{borderStyle:"dashed",minHeight:"46px",borderColor:"rgba(239, 68, 68, 0.4)",color:"#f87171"},children:[o.jsx(vr,{size:18}),o.jsx("span",{children:"Add Another Product to Sale"})]}),o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"14px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(239, 68, 68, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"},children:[o.jsxs("div",{children:[o.jsx("span",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Total Outgoing:"}),o.jsxs("div",{style:{display:"flex",alignItems:"baseline",gap:"6px"},children:[o.jsxs("span",{style:{fontSize:"20px",fontWeight:800,color:"#f87171"},children:["-",O.totalPcs.toLocaleString()," pcs"]}),O.totalSqm>0&&o.jsxs("span",{style:{fontSize:"13px",fontWeight:700,color:"var(--brand-400)"},children:["(-",O.totalSqm," sqm)"]})]})]}),o.jsxs("div",{style:{fontSize:"11.5px",color:"var(--text-muted)",textAlign:"right"},children:["Staff: ",o.jsx("strong",{style:{color:"#fff"},children:f||"Staff"})]})]}),o.jsx("button",{type:"submit",disabled:xe||O.totalPcs<=0,className:"btn btn-primary btn-lg",style:{width:"100%",background:"linear-gradient(135deg, #ef4444, #dc2626)",boxShadow:"0 4px 14px rgba(239, 68, 68, 0.4)"},children:xe?"Recording Dispatch...":o.jsxs(o.Fragment,{children:[o.jsx(Vp,{size:20}),o.jsx("span",{children:"Confirm Sales Dispatch (Deduct Stock)"})]})})]})]}),A&&o.jsx("div",{className:"modal-overlay",onClick:()=>L(!1),children:o.jsxs("div",{className:"modal-content",onClick:T=>T.stopPropagation(),style:{padding:"20px",maxHeight:"85vh",display:"flex",flexDirection:"column"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"},children:[o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"17px",fontWeight:700},children:"Select Product to Sell"}),o.jsx("p",{style:{fontSize:"11.5px",color:"var(--brand-400)"},children:"Ordered by highest volume sales velocity"})]}),o.jsx("button",{type:"button",onClick:()=>L(!1),className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("div",{className:"search-wrapper",style:{marginBottom:"10px"},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Filter product name...",value:W,onChange:T=>H(T.target.value),autoFocus:!0})]}),o.jsx("div",{className:"filter-tabs",style:{marginBottom:"12px"},children:le.map(T=>o.jsx("button",{type:"button",onClick:()=>Y(T),className:`filter-tab ${ne===T?"active":""}`,style:{padding:"6px 12px",fontSize:"12px"},children:T},T))}),o.jsx("div",{style:{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:"6px"},children:he.map((T,N)=>{const S=d(T.id),D=Ua(T),F=(S==null?void 0:S.sales_volume_pcs)||0;return o.jsxs("button",{type:"button",onClick:()=>oe(T),style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:"var(--bg-input)",border:"1px solid var(--border-subtle)",borderRadius:"var(--radius-md)",color:"#f8fafc",cursor:"pointer",textAlign:"left"},children:[o.jsxs("div",{children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsxs("span",{style:{fontSize:"10px",color:"var(--brand-400)",fontWeight:800},children:["#",N+1]}),o.jsx("span",{style:{fontSize:"14px",fontWeight:700},children:T.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"10px",padding:"1px 5px"},children:T.category})]}),o.jsxs("div",{style:{fontSize:"11px",color:"var(--text-muted)",marginTop:"2px"},children:["Size: ",D," · In stock:"," ",o.jsx("strong",{style:{color:S&&S.total_pcs>0?"#34d399":"#f87171"},children:S?`${S.total_pcs} pcs`:"0 pcs"})]})]}),o.jsx("div",{style:{textAlign:"right"},children:o.jsxs("span",{style:{fontSize:"11.5px",color:"#f87171",fontWeight:700},children:[F," sold"]})})]},T.id)})})]})})]})},w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a}=Vt(),c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r}=Vt(),[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px",flexShrink:0},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",justifyContent:"flex-end",marginTop:"16px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})})]})},k1=()=>{var T,N;const{movements:s,items:t,addMovement:r,staffName:a,rawMaterialMovements:c,rawMaterials:u}=Vt(),[d,f]=B.useState("finished_goods"),[m,g]=B.useState(""),[_,x]=B.useState("all"),[b,w]=B.useState("all"),[E,j]=B.useState(""),[k,A]=B.useState(""),[L,W]=B.useState(!1),[H,ne]=B.useState("dispatch_out"),[Y,ae]=B.useState(((T=t[0])==null?void 0:T.id)||""),[fe,xe]=B.useState("Standard"),[Ie,Be]=B.useState(""),[M,ee]=B.useState(""),[le,he]=B.useState(null),Pe=B.useMemo(()=>{const S=new Map;for(const D of t)S.set(D.id,D);return S},[t]),oe=B.useMemo(()=>{const S=new Map;for(const D of u)S.set(D.key,D);return S},[u]),G=Pe.get(Y),ue=B.useMemo(()=>s.filter(S=>{if(_!=="all"&&S.type!==_||b!=="all"&&S.item_id!==b||E&&S.date<E||k&&S.date>k)return!1;if(m.trim()){const D=Pe.get(S.item_id),F=D?D.name.toLowerCase():"",Z=(S.note||"").toLowerCase(),se=(S.entered_by||"").toLowerCase(),we=m.toLowerCase();if(!F.includes(we)&&!Z.includes(we)&&!se.includes(we))return!1}return!0}),[s,_,b,E,k,m,Pe]),P=B.useMemo(()=>c.filter(S=>{if(E&&S.date<E||k&&S.date>k)return!1;if(m.trim()){const D=oe.get(S.materialKey),F=D?(D.name+" "+D.nameSwahili).toLowerCase():"",Z=(S.note||"").toLowerCase(),se=(S.enteredBy||"").toLowerCase(),we=m.toLowerCase();if(!F.includes(we)&&!Z.includes(we)&&!se.includes(we))return!1}return!0}),[c,E,k,m,oe]),y=async S=>{S.preventDefault();const D=parseFloat(Ie);if(isNaN(D)||D<=0)return;const F=Pe.get(Y);if(!F)return;const Z=fe==="Standard"?null:fe;let se=null;F.unit==="sqm"&&F.pcs_per_sqm&&F.pcs_per_sqm>0&&(se=Number((D/F.pcs_per_sqm).toFixed(2)));let we=F.unit==="sqm"&&se!==null?se:D;H==="dispatch_out"&&(we=-Math.abs(we)),await r({item_id:F.id,type:H,color:Z,quantity_pcs:D,quantity_sqm:se,delta:we,date:new Date().toISOString().split("T")[0],note:M||`${H==="dispatch_out"?"Manual Dispatch":"Manual Adjustment"}`})&&(W(!1),Be(""),ee(""))},O=S=>{switch(S){case"production_in":return o.jsxs("span",{className:"badge badge-success",style:{fontSize:"11px",padding:"2px 7px"},children:[o.jsx(Gv,{size:12})," Production"]});case"opening_balance":return o.jsxs("span",{className:"badge badge-info",style:{fontSize:"11px",padding:"2px 7px"},children:[o.jsx(mc,{size:12})," Baseline"]});case"dispatch_out":return o.jsxs("span",{className:"badge badge-danger",style:{fontSize:"11px",padding:"2px 7px"},children:[o.jsx(Vp,{size:12})," Dispatch"]});case"adjustment":return o.jsxs("span",{className:"badge badge-warning",style:{fontSize:"11px",padding:"2px 7px"},children:[o.jsx(Sc,{size:12})," Adjustment"]})}},z=S=>!S||S==="unspecified"?null:S==="optimal"?o.jsxs("span",{className:"badge badge-success",style:{fontSize:"10.5px",padding:"1px 6px"},children:[o.jsx(Qp,{size:11})," QC Optimal"]}):S==="lean_warning"?o.jsxs("span",{className:"badge badge-warning",style:{fontSize:"10.5px",padding:"1px 6px"},children:[o.jsx(Kx,{size:11})," QC Lean Alert"]}):S==="rich_notice"?o.jsxs("span",{className:"badge badge-info",style:{fontSize:"10.5px",padding:"1px 6px"},children:[o.jsx(jx,{size:11})," QC Rich Mix"]}):null;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"16px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Append-Only Ledger Log"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Immutable history of finished goods movements & raw material auto-deductions"})]}),o.jsxs("button",{onClick:()=>W(!0),className:"btn btn-secondary btn-sm",style:{gap:"4px"},children:[o.jsx(vr,{size:15,color:"var(--brand-400)"}),o.jsx("span",{children:"Dispatch / Adjust"})]})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",background:"var(--bg-surface-elevated)",padding:"4px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsxs("button",{type:"button",onClick:()=>f("finished_goods"),style:{padding:"8px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:d==="finished_goods"?"var(--brand-500)":"transparent",color:d==="finished_goods"?"#fff":"var(--text-secondary)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(si,{size:14}),o.jsxs("span",{children:["Finished Goods Ledger (",s.length,")"]})]}),o.jsxs("button",{type:"button",onClick:()=>f("raw_materials"),style:{padding:"8px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:d==="raw_materials"?"var(--brand-500)":"transparent",color:d==="raw_materials"?"#fff":"var(--text-secondary)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(pc,{size:14}),o.jsxs("span",{children:["Raw Materials Deductions (",c.length,")"]})]})]}),o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{className:"search-wrapper",children:[o.jsx(ii,{className:"search-icon",size:16}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search by product, operator, or notes...",value:m,onChange:S=>g(S.target.value)}),m&&o.jsx("button",{className:"search-clear",onClick:()=>g(""),children:"✕"})]}),d==="finished_goods"&&o.jsxs(o.Fragment,{children:[o.jsx("div",{className:"filter-tabs",children:[{id:"all",label:"All Movements"},{id:"production_in",label:"Production (+)"},{id:"opening_balance",label:"Opening Balance"},{id:"dispatch_out",label:"Dispatch (-)"},{id:"adjustment",label:"Adjustment (±)"}].map(S=>o.jsx("button",{onClick:()=>x(S.id),className:`filter-tab ${_===S.id?"active":""}`,style:{fontSize:"12px",padding:"5px 12px"},children:S.label},S.id))}),o.jsx("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"},children:o.jsxs("select",{className:"input-field",style:{flex:1,minWidth:"160px",height:"40px",minHeight:"40px",fontSize:"13px"},value:b,onChange:S=>w(S.target.value),children:[o.jsxs("option",{value:"all",children:["All Products (",t.length,")"]}),t.map(S=>o.jsxs("option",{value:S.id,children:[S.name," (",S.category,")"]},S.id))]})})]})]}),d==="finished_goods"&&o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 4px"},children:[o.jsxs("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["Recorded Movements (",ue.length,")"]}),o.jsx("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:"Latest first"})]}),ue.length===0?o.jsxs("div",{className:"card",style:{textAlign:"center",padding:"36px 16px",color:"var(--text-muted)"},children:[o.jsx(mc,{size:32,style:{margin:"0 auto 8px auto",opacity:.5}}),o.jsx("div",{style:{fontSize:"14.5px",fontWeight:600,color:"var(--text-secondary)"},children:"No movements found"}),o.jsx("div",{style:{fontSize:"12px",marginTop:"4px"},children:"Logged production or opening balance entries will appear here."})]}):ue.map(S=>{const D=Pe.get(S.item_id),F=S.delta>=0;return o.jsxs("div",{onClick:()=>he(S),className:"card",style:{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",cursor:"pointer",borderColor:S.qc_status==="lean_warning"?"rgba(245, 158, 11, 0.4)":void 0},children:[o.jsxs("div",{style:{flex:1,minWidth:0},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"4px",flexWrap:"wrap"},children:[O(S.type),o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:D?D.name:"Unknown Product"}),S.color&&o.jsx(xr,{color:S.color,size:"sm",showCount:!1}),z(S.qc_status)]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",fontSize:"11.5px",color:"var(--text-muted)",flexWrap:"wrap"},children:[o.jsxs("span",{style:{display:"flex",alignItems:"center",gap:"3px"},children:[o.jsx(ni,{size:12})," ",S.date]}),o.jsxs("span",{style:{display:"flex",alignItems:"center",gap:"3px"},children:[o.jsx(Da,{size:12})," ",S.entered_by]}),S.computed_materials_deducted&&o.jsxs("span",{style:{color:"var(--brand-400)"},children:["⚡ ",S.computed_materials_deducted.cementBags," bags Cem"]}),S.note&&o.jsxs("span",{style:{color:"var(--text-secondary)",maxWidth:"140px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},children:['"',S.note,'"']})]})]}),o.jsxs("div",{style:{textAlign:"right",flexShrink:0},children:[o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,fontFamily:"var(--font-mono)",color:F?"#34d399":"#f87171"},children:[F?"+":"",S.quantity_pcs," pcs"]}),S.quantity_sqm!==null&&o.jsxs("div",{style:{fontSize:"12px",color:"var(--brand-400)",fontWeight:600},children:[F?"+":"-",Math.abs(S.quantity_sqm)," sqm"]})]})]},S.id)})]}),d==="raw_materials"&&o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 4px"},children:[o.jsxs("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["Raw Material Ledger Logs (",P.length,")"]}),o.jsx("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:"Production deductions & restocks"})]}),P.length===0?o.jsxs("div",{className:"card",style:{textAlign:"center",padding:"36px 16px",color:"var(--text-muted)"},children:[o.jsx(pc,{size:32,style:{margin:"0 auto 8px auto",opacity:.5}}),o.jsx("div",{style:{fontSize:"14.5px",fontWeight:600,color:"var(--text-secondary)"},children:"No raw material logs yet"}),o.jsx("div",{style:{fontSize:"12px",marginTop:"4px"},children:"Deductions will be automatically recorded when you log finished goods production."})]}):P.map(S=>{const D=oe.get(S.materialKey),F=S.delta>=0;return o.jsxs("div",{className:"card",style:{padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",marginBottom:"3px"},children:[o.jsx("span",{className:`badge ${F?"badge-success":"badge-neutral"}`,style:{fontSize:"10.5px"},children:F?"+ Restock Intake":"- Auto Recipe Deduction"}),o.jsx("strong",{style:{fontSize:"14px",color:"#f8fafc"},children:D?D.name:S.materialKey})]}),o.jsxs("div",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"flex",gap:"8px"},children:[o.jsxs("span",{children:[o.jsx(ni,{size:11,style:{verticalAlign:"middle"}})," ",S.date]}),o.jsxs("span",{children:["By: ",S.enteredBy]}),S.note&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:['"',S.note,'"']})]})]}),o.jsx("div",{style:{textAlign:"right"},children:o.jsxs("span",{style:{fontSize:"16px",fontWeight:800,fontFamily:"var(--font-mono)",color:F?"#34d399":"#f87171"},children:[F?"+":"",S.delta," ",S.unit]})})]},S.id)})]}),le&&o.jsx("div",{className:"modal-overlay",onClick:()=>he(null),children:o.jsxs("div",{className:"modal-content",onClick:S=>S.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(xx,{size:20,color:"var(--brand-400)"}),o.jsx("h3",{style:{fontSize:"17px",fontWeight:700},children:"Movement Ledger Record"})]}),o.jsx("button",{onClick:()=>he(null),className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Type"}),o.jsxs("div",{style:{display:"flex",gap:"6px"},children:[O(le.type),z(le.qc_status)]})]}),o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Product"}),o.jsx("span",{style:{fontWeight:700},children:((N=Pe.get(le.item_id))==null?void 0:N.name)||le.item_id})]}),le.color&&o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Color"}),o.jsx(xr,{color:le.color,size:"sm",showCount:!1})]}),o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Quantity in Pieces"}),o.jsxs("span",{style:{fontWeight:700,fontFamily:"var(--font-mono)"},children:[le.quantity_pcs," pcs"]})]}),le.quantity_sqm!==null&&o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Quantity in Sqm"}),o.jsxs("span",{style:{fontWeight:700,color:"var(--brand-400)",fontFamily:"var(--font-mono)"},children:[le.quantity_sqm," sqm"]})]}),le.computed_materials_deducted&&o.jsxs("div",{style:{padding:"10px",background:"var(--bg-input)",borderRadius:"8px",marginTop:"6px"},children:[o.jsx("div",{style:{fontSize:"12px",fontWeight:700,marginBottom:"4px",color:"var(--brand-400)"},children:"⚡ Auto-Deducted Raw Materials:"}),o.jsxs("div",{style:{fontSize:"12px",color:"var(--text-secondary)"},children:["• Cement: ",o.jsxs("strong",{children:[le.computed_materials_deducted.cementBags," bags"]})," (50kg)",o.jsx("br",{}),"• Sand: ",o.jsxs("strong",{children:[le.computed_materials_deducted.sandBuckets," buckets"]}),o.jsx("br",{}),"• Chipping: ",o.jsxs("strong",{children:[le.computed_materials_deducted.chippingBuckets," buckets"]}),le.computed_materials_deducted.chemicalLiters>0&&o.jsxs("div",{children:["• Dawa: ",o.jsxs("strong",{children:[le.computed_materials_deducted.chemicalLiters," L"]})]}),le.computed_materials_deducted.pigmentRedKg>0&&o.jsxs("div",{children:["• Red Pigment: ",o.jsxs("strong",{children:[le.computed_materials_deducted.pigmentRedKg," kg"]})]})]})]}),o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Entered By"}),o.jsx("span",{style:{fontWeight:600},children:le.entered_by})]}),o.jsxs("div",{style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border-subtle)"},children:[o.jsx("span",{style:{fontSize:"13px",color:"var(--text-muted)"},children:"Date & Timestamp"}),o.jsxs("span",{style:{fontSize:"12px",color:"var(--text-secondary)"},children:[le.date," (",le.created_at?new Date(le.created_at).toLocaleTimeString():"N/A",")"]})]})]}),o.jsx("div",{style:{marginTop:"18px",textAlign:"right"},children:o.jsx("button",{type:"button",onClick:()=>he(null),className:"btn btn-secondary",style:{width:"100%"},children:"Close Details"})})]})}),L&&o.jsx("div",{className:"modal-overlay",onClick:()=>W(!1),children:o.jsxs("div",{className:"modal-content",onClick:S=>S.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:"Log Dispatch or Stock Adjustment"}),o.jsx("button",{onClick:()=>W(!1),className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:y,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Movement Type"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>ne("dispatch_out"),className:`btn ${H==="dispatch_out"?"btn-primary":"btn-secondary"}`,style:{flex:1,background:H==="dispatch_out"?"var(--status-danger)":void 0},children:"Dispatch Out (-)"}),o.jsx("button",{type:"button",onClick:()=>ne("adjustment"),className:`btn ${H==="adjustment"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Adjustment (±)"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product"}),o.jsx("select",{value:Y,onChange:S=>ae(S.target.value),className:"input-field",children:t.map(S=>o.jsxs("option",{value:S.id,children:[S.name," (",S.category,")"]},S.id))})]}),(G==null?void 0:G.colors)&&G.colors.length>0&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Color Variant"}),o.jsx("select",{value:fe,onChange:S=>xe(S.target.value),className:"input-field",children:G.colors.map(S=>o.jsx("option",{value:S,children:S},S))})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Quantity in Pieces (pcs)"}),o.jsx("input",{type:"number",min:"1",step:"1",required:!0,value:Ie,onChange:S=>Be(S.target.value),className:"input-field mono",placeholder:"e.g. 50"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Note / Customer / Reason"}),o.jsx("input",{type:"text",value:M,onChange:S=>ee(S.target.value),className:"input-field",placeholder:"e.g. Dispatched to Site B, truck T123 ABC..."})]}),o.jsx("button",{type:"submit",className:"btn btn-primary btn-lg",style:{width:"100%",marginTop:"8px"},children:"Save Ledger Movement"})]})]})})]})},C1=()=>{const{isUnlocked:s}=Vt(),[t,r]=B.useState("dashboard"),[a,c]=B.useState(void 0),[u,d]=B.useState(!1);if(!s)return o.jsx(l1,{});const f=(m,g)=>{r(m),c(g)};return o.jsxs("div",{className:"app-layout",children:[o.jsx(a1,{onOpenAi:()=>d(!0)}),o.jsxs("main",{className:"main-content",children:[t==="dashboard"&&o.jsx(x1,{onNavigate:f}),t==="production"&&o.jsx(_1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="sales"&&o.jsx(b1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="opening_balance"&&o.jsx(w1,{}),t==="items"&&o.jsx(S1,{}),t==="history"&&o.jsx(k1,{})]}),o.jsx("button",{type:"button",onClick:()=>d(!0),style:{position:"fixed",right:"16px",bottom:"calc(var(--nav-bottom-height) + 16px)",zIndex:45,width:"48px",height:"48px",borderRadius:"50%",background:"linear-gradient(135deg, #f97316, #9333ea)",border:"2px solid rgba(255, 255, 255, 0.2)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px rgba(249, 115, 22, 0.5), 0 0 15px rgba(147, 51, 234, 0.4)",cursor:"pointer",transition:"transform 0.15s ease"},title:"Ask STUMARCOT AI Agent",children:o.jsx(kc,{size:22,color:"#fff"})}),o.jsx(v1,{isOpen:u,onClose:()=>d(!1)}),o.jsx(o1,{currentTab:t,onTabChange:r})]})},j1=()=>o.jsx(Bv,{children:o.jsx(C1,{})});ig.createRoot(document.getElementById("root")).render(o.jsx(Xm.StrictMode,{children:o.jsx(j1,{})}));
+},b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
+  const {items:a, movements:c, addMovementsBatch:u, getStockSummary:d, staffName:f, adminSettings:adm} = Vt();
+  const m = B.useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  // Persistent In-Memory State: survives tab switches, but resets on whole app/web refresh
+  const savedDraft = B.useMemo(() => {
+    try {
+      // Clear any legacy sessionStorage so a full web refresh always resets completely
+      sessionStorage.removeItem("stumarcot_sales_tab_draft_v3");
+      sessionStorage.removeItem("stumarcot_sales_tab_draft_v2");
+      sessionStorage.removeItem("stumarcot_sales_tab_draft");
+      if (window._stumarcot_sales_draft) return window._stumarcot_sales_draft;
+    } catch (err) {}
+    return {};
+  }, []);
+
+  // Point 1: Tanzanian Phone Number Validator
+  // Validates: 07XXXXXXXX, 06XXXXXXXX (10 digits) or +2556/7XXXXXXXX, 2556/7XXXXXXXX
+  const validateTzPhone = B.useCallback((phone) => {
+    if (!phone) return false;
+    const clean = String(phone).replace(/[\s\-\(\)\.]/g, "");
+    return /^(?:\+?255|0)[67]\d{8}$/.test(clean);
+  }, []);
+  
+  // Date State
+  const [saleDate, setSaleDate] = B.useState(savedDraft.saleDate || m);
+
+  // Card 1: Customer Details State (Sticky across multiple products)
+  const [customerName, setCustomerName] = B.useState(savedDraft.customerName || "");
+  const [customerContacts, setCustomerContacts] = B.useState(savedDraft.customerContacts || "");
+  const [deliverySite, setDeliverySite] = B.useState(savedDraft.deliverySite || "");
+  const [customerTin, setCustomerTin] = B.useState(savedDraft.customerTin || "");
+
+  // Phone number validity (soft helper when contacts entered)
+  const isPhoneValid = B.useMemo(() => {
+    if (!customerContacts.trim()) return true;
+    return validateTzPhone(customerContacts);
+  }, [customerContacts, validateTzPhone]);
+
+  // Customer info is optional for now as requested
+  const hasCustomerInfo = true;
+
+  // Card 2: Active Product Selection & Money State
+  // Point 1: Default "Select Product" (empty initially until selected)
+  const [selectedItemId, setSelectedItemId] = B.useState(() => {
+    if (s && a.some(it => it.id === s)) return s;
+    return savedDraft.selectedItemId || "";
+  });
+  const [selectedColor, setSelectedColor] = B.useState(savedDraft.selectedColor || "White");
+  const [sellingPriceInput, setSellingPriceInput] = B.useState(savedDraft.sellingPriceInput || "");
+  const [isCustomPrice, setIsCustomPrice] = B.useState(savedDraft.isCustomPrice || false);
+  const [quantityInput, setQuantityInput] = B.useState(savedDraft.quantityInput || "");
+  const [paymentAccount, setPaymentAccount] = B.useState(savedDraft.paymentAccount || "Cash");
+
+  // Multi-product subcards: additional products added to this current customer sale
+  const [addedProducts, setAddedProducts] = B.useState(savedDraft.addedProducts || []);
+
+  // Card 3: Daily Sales Ledger (Staged sales ready to confirm)
+  const [stagedSales, setStagedSales] = B.useState(savedDraft.stagedSales || []);
+  const [editingSaleId, setEditingSaleId] = B.useState(null);
+
+  // Modals & UI State
+  const [showProductModal, setShowProductModal] = B.useState(false);
+  const [productSearch, setProductSearch] = B.useState("");
+  const [productCategoryFilter, setProductCategoryFilter] = B.useState("All");
+  const [showColorDropdown, setShowColorDropdown] = B.useState(false);
+  const [viewSaleDetail, setViewSaleDetail] = B.useState(null);
+  const [showConfirmModal, setShowConfirmModal] = B.useState(false);
+  const [isSubmitting, setIsSubmitting] = B.useState(false);
+  const [successBanner, setSuccessBanner] = B.useState(null);
+
+  // Persist state in memory across tab switches (cleared when whole web app reloads)
+  B.useEffect(() => {
+    try {
+      window._stumarcot_sales_draft = {
+        saleDate,
+        customerName,
+        customerContacts,
+        deliverySite,
+        customerTin,
+        selectedItemId,
+        selectedColor,
+        sellingPriceInput,
+        isCustomPrice,
+        quantityInput,
+        paymentAccount,
+        addedProducts,
+        stagedSales
+      };
+    } catch (e) {}
+  }, [saleDate, customerName, customerContacts, deliverySite, customerTin, selectedItemId, selectedColor, sellingPriceInput, isCustomPrice, quantityInput, paymentAccount, addedProducts, stagedSales]);
+
+  // Sorted items by sales velocity
+  const velocityItems = B.useMemo(() => pg(a, c), [a, c]);
+  const categoriesList = B.useMemo(() => {
+    const setCats = new Set(a.map(it => it.category));
+    return ["All", ...Array.from(setCats)];
+  }, [a]);
+
+  // Current active item object
+  const activeItem = B.useMemo(() => {
+    if (!selectedItemId) return null;
+    return a.find(it => it.id === selectedItemId) || null;
+  }, [a, selectedItemId]);
+
+  // Point 2 & 3: Accurate Pricelist Resolver with Color Variation according to docs/price list 2026.xlsx
+  // Unit is sqm for products with unit: "sqm" (Floor Tiles, Paving Blocks, Wall Tiles)
+  const getItemPricelist = B.useCallback((item, colorName) => {
+    if (!item) return { unitPrice: 0, sqmPrice: 0, defaultPrice: 0, isSqm: false, unitLabel: "pcs" };
+    const name = (item.name || "").toLowerCase();
+    const cat = (item.category || "").toLowerCase();
+    const col = (colorName || "White").toLowerCase();
+    const isSqm = item.unit === "sqm";
+
+    // Products sold per SQM
+    if (isSqm) {
+      // Floor Tiles (standard White 25,500 Tsh/m²; Slab 16,500; Combo 32,500)
+      if (cat.includes("floor") || cat.includes("wall")) {
+        let baseSqm = 25500;
+        if (name.includes("slab")) baseSqm = 16500;
+        else if (name.includes("combo") && name.includes("800")) baseSqm = 32500;
+
+        // Color rules from Excel row 48/60: Red 27,500 (+2k), Grey 27,500 (+2k), Black 31,500 (+6k)
+        let colorSurcharge = 0;
+        if (col.includes("red") || col.includes("grey") || col.includes("gray") || col.includes("maroon")) {
+          colorSurcharge = 2000;
+        } else if (col.includes("black")) {
+          colorSurcharge = 6000;
+        }
+        const effectiveSqm = baseSqm + colorSurcharge;
+        const perPc = Math.round(effectiveSqm / (item.pcs_per_sqm || 6));
+        return { unitPrice: perPc, sqmPrice: effectiveSqm, defaultPrice: effectiveSqm, isSqm: true, unitLabel: "m²" };
+      }
+
+      // Slabs
+      if (cat.includes("slab")) {
+        const baseSqm = name.includes("110") ? 16500 : 32500;
+        return { unitPrice: baseSqm, sqmPrice: baseSqm, defaultPrice: baseSqm, isSqm: true, unitLabel: "m²" };
+      }
+
+      // Paving Blocks (Vibration: White 29,500; Press: 80mm=31,500, 60mm=25,830, 40-45MPa=35,000)
+      if (cat.includes("paving")) {
+        const isVibro = name.includes("u-dot") || name.includes("u dot") || name.includes("z-plain") || name.includes("z plain") || name.includes("trio") || name.includes("culture") || name.includes("v paver") || name.includes("v-shape") || name.includes("kisu");
+        if (isVibro) {
+          // Vibration pavers from Excel: Red 31,500 (+2k), Grey 31,500 (+2k), Black 34,500 (+5k)
+          let baseSqm = 29500;
+          let colorSurcharge = 0;
+          if (col.includes("red") || col.includes("grey") || col.includes("gray") || col.includes("maroon")) {
+            colorSurcharge = 2000;
+          } else if (col.includes("black")) {
+            colorSurcharge = 5000;
+          }
+          const effectiveSqm = baseSqm + colorSurcharge;
+          return { unitPrice: 1000, sqmPrice: effectiveSqm, defaultPrice: effectiveSqm, isSqm: true, unitLabel: "m²" };
+        } else {
+          // Press pavers from Excel: increase of Tsh 3000 per sqmt for Red and Grey
+          let baseSqm = 31500;
+          if (name.includes("40") || name.includes("45") || name.includes("mpa-40")) baseSqm = 35000;
+          else if (name.includes("60") || name.includes("6cm") || name.includes("rough 6cm") || name.includes("worldcup")) baseSqm = 25830;
+
+          let colorSurcharge = 0;
+          if (col.includes("red") || col.includes("grey") || col.includes("gray") || col.includes("black") || col.includes("maroon")) {
+            colorSurcharge = 3000;
+          }
+          const effectiveSqm = baseSqm + colorSurcharge;
+          return { unitPrice: 630, sqmPrice: effectiveSqm, defaultPrice: effectiveSqm, isSqm: true, unitLabel: "m²" };
+        }
+      }
+
+      return { unitPrice: 1000, sqmPrice: 25500, defaultPrice: 25500, isSqm: true, unitLabel: "m²" };
+    }
+
+    // Products sold per PIECE (pcs)
+    // Culverts
+    if (cat.includes("culvert") || name.includes("culvert")) {
+      let p = 96000;
+      if (name.includes("900n")) p = 146000;
+      else if (name.includes("900r") || name.includes("600n")) p = 116000;
+      else if (name.includes("600r") || name.includes("400n")) p = 96000;
+      else if (name.includes("400r")) p = 76000;
+      return { unitPrice: p, sqmPrice: 0, defaultPrice: p, isSqm: false, unitLabel: "pcs" };
+    }
+
+    // Kerbstones
+    if (cat.includes("kerb") || cat.includes("curb")) {
+      let p = 13500;
+      if (name.includes("panasonic")) p = 18500;
+      else if (name.includes("100") || name.includes("80")) p = 17500;
+      else if (name.includes("60") || name.includes("50 press")) p = 13500;
+      else if (name.includes("50") || name.includes("bevo") || name.includes("bevel")) p = 11500;
+      return { unitPrice: p, sqmPrice: 0, defaultPrice: p, isSqm: false, unitLabel: "pcs" };
+    }
+
+    // Mifuniko / Covers
+    if (cat.includes("mifuniko") || cat.includes("cover")) {
+      let p = 11500;
+      if (name.includes("mkubwa") || name.includes("cm80") || name.includes("cm60") || name.includes("nondo") || name.includes("ulalo")) p = 13500;
+      return { unitPrice: p, sqmPrice: 0, defaultPrice: p, isSqm: false, unitLabel: "pcs" };
+    }
+
+    // Poles / Nguzo
+    if (cat.includes("pole") || cat.includes("nguzo")) {
+      let p = name.includes("bicon") ? 26000 : 8000;
+      return { unitPrice: p, sqmPrice: 0, defaultPrice: p, isSqm: false, unitLabel: "pcs" };
+    }
+
+    // Blocks / Matofali
+    if (cat.includes("block") || cat.includes("tofali") || cat.includes("matofali") || cat.includes("chipping")) {
+      let p = 1770;
+      if (name.includes("dust") || name.includes("chip") || name.includes('8"')) p = 2242;
+      else if (name.includes("hollow")) p = 1888;
+      return { unitPrice: p, sqmPrice: 0, defaultPrice: p, isSqm: false, unitLabel: "pcs" };
+    }
+
+    return { unitPrice: 1000, sqmPrice: 0, defaultPrice: 1000, isSqm: false, unitLabel: "pcs" };
+  }, []);
+
+  // Sync color & update selling price when active item changes
+  B.useEffect(() => {
+    if (activeItem) {
+      let activeCol = selectedColor;
+      if (activeItem.colors && activeItem.colors.length > 0) {
+        if (!activeItem.colors.includes(selectedColor)) {
+          activeCol = activeItem.colors[0];
+          setSelectedColor(activeCol);
+        }
+      } else {
+        activeCol = "Standard";
+        setSelectedColor("Standard");
+      }
+      if (!isCustomPrice) {
+        const pricing = getItemPricelist(activeItem, activeCol);
+        setSellingPriceInput(String(pricing.defaultPrice));
+      }
+    }
+  }, [activeItem]);
+
+  // Point 3: Handle color change with automatic price adjustment
+  const handleSelectColor = (col) => {
+    setSelectedColor(col);
+    setShowColorDropdown(false);
+    if (!isCustomPrice && activeItem) {
+      const pricing = getItemPricelist(activeItem, col);
+      setSellingPriceInput(String(pricing.defaultPrice));
+    }
+  };
+
+  // Handle prefill item from other tabs
+  B.useEffect(() => {
+    if (s && a.some(it => it.id === s)) {
+      setSelectedItemId(s);
+      setIsCustomPrice(false);
+      setSellingPriceInput("");
+      t && t();
+    }
+  }, [s, a]);
+
+  // Current stock metrics
+  const activeStock = B.useMemo(() => activeItem ? d(activeItem.id) : null, [activeItem, d]);
+  const activePricelist = B.useMemo(() => getItemPricelist(activeItem, selectedColor), [activeItem, selectedColor, getItemPricelist]);
+  
+  // Point 2: Effective selling price per selling unit (sqm for sqm items, pcs for pcs items)
+  const effectiveUnitPrice = B.useMemo(() => {
+    if (isCustomPrice && sellingPriceInput !== "" && !isNaN(Number(sellingPriceInput))) {
+      return Number(sellingPriceInput);
+    }
+    return activePricelist.defaultPrice;
+  }, [isCustomPrice, sellingPriceInput, activePricelist]);
+
+  const parsedQty = B.useMemo(() => {
+    const q = parseFloat(quantityInput);
+    return isNaN(q) || q < 0 ? 0 : q;
+  }, [quantityInput]);
+
+  const activeTotalAmount = B.useMemo(() => {
+    return parsedQty * effectiveUnitPrice;
+  }, [parsedQty, effectiveUnitPrice]);
+
+  // Point 4: VAT & Discount calculations
+  // VAT formula: VAT = price * (18 / 118)
+  const unitVatAmount = B.useMemo(() => {
+    return effectiveUnitPrice * (18 / 118);
+  }, [effectiveUnitPrice]);
+
+  const totalVatAmount = B.useMemo(() => {
+    return activeTotalAmount * (18 / 118);
+  }, [activeTotalAmount]);
+
+  const discountDiff = B.useMemo(() => {
+    return activePricelist.defaultPrice - effectiveUnitPrice;
+  }, [activePricelist, effectiveUnitPrice]);
+
+  const discountPct = B.useMemo(() => {
+    if (activePricelist.defaultPrice <= 0) return 0;
+    return (discountDiff / activePricelist.defaultPrice) * 100;
+  }, [discountDiff, activePricelist]);
+
+  // Filtered products for selection modal
+  const filteredModalProducts = B.useMemo(() => {
+    return velocityItems.filter(it => {
+      const matchCat = productCategoryFilter === "All" || it.category === productCategoryFilter;
+      const matchSearch = it.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+                          it.category.toLowerCase().includes(productSearch.toLowerCase());
+      return matchCat && matchSearch;
+    });
+  }, [velocityItems, productCategoryFilter, productSearch]);
+
+  // Helper to format currency
+  const formatMoney = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return "0";
+    return Math.round(val).toLocaleString();
+  };
+
+  // Grand totals for bottom card & verification modal
+  const totalSalesRevenue = B.useMemo(() => {
+    return stagedSales.reduce((s, sa) => s + sa.totalAmount, 0) + 
+      (stagedSales.length === 0 ? activeTotalAmount + addedProducts.reduce((s, p) => s + p.totalAmount, 0) : 0);
+  }, [stagedSales, activeTotalAmount, addedProducts]);
+
+  const totalSalesPieces = B.useMemo(() => {
+    return stagedSales.reduce((s, sa) => s + sa.totalPcs, 0) +
+      (stagedSales.length === 0 ? (activePricelist.isSqm && activeItem && activeItem.pcs_per_sqm ? Math.round(parsedQty * activeItem.pcs_per_sqm) : parsedQty) + addedProducts.reduce((s, p) => s + (p.qtyPcs || p.qty), 0) : 0);
+  }, [stagedSales, activePricelist, activeItem, parsedQty, addedProducts]);
+
+  const totalSalesSqm = B.useMemo(() => {
+    const fromStaged = stagedSales.reduce((s, sa) => s + (sa.totalSqm || 0), 0);
+    if (stagedSales.length > 0) return Number(fromStaged.toFixed(2));
+    const activeSqm = activePricelist.isSqm ? parsedQty : 0;
+    const addedSqm = addedProducts.reduce((s, p) => s + (p.sqm || 0), 0);
+    return Number((activeSqm + addedSqm).toFixed(2));
+  }, [stagedSales, activePricelist, parsedQty, addedProducts]);
+
+  const salesAccountBreakdown = B.useMemo(() => {
+    const map = {};
+    for (const s of stagedSales) {
+      for (const it of s.items) {
+        const acc = it.account || "Cash";
+        map[acc] = (map[acc] || 0) + (it.totalAmount || 0);
+      }
+    }
+    return Object.entries(map);
+  }, [stagedSales]);
+
+  // Add Another Product to Sale subcard flow
+  const handleAddAnotherProduct = () => {
+    if (!activeItem) {
+      setShowProductModal(true);
+      return;
+    }
+    if (parsedQty <= 0) {
+      alert("Please enter a valid quantity (Qty > 0) for " + activeItem.name + " before adding it to the sale.");
+      return;
+    }
+
+    const isSqmProduct = activeItem.unit === "sqm";
+    const sqmVal = isSqmProduct ? parsedQty : null;
+    const pcsVal = isSqmProduct 
+      ? (activeItem.pcs_per_sqm ? Math.round(parsedQty * activeItem.pcs_per_sqm) : parsedQty)
+      : parsedQty;
+
+    const newSubProduct = {
+      subId: "sub-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+      itemId: activeItem.id,
+      itemName: activeItem.name,
+      category: activeItem.category,
+      color: selectedColor,
+      size: Ua(activeItem),
+      unit: activeItem.unit,
+      sellingUnit: activePricelist.unitLabel,
+      pcsPerSqm: activeItem.pcs_per_sqm,
+      pricelistPrice: activePricelist.defaultPrice,
+      sellingPrice: effectiveUnitPrice,
+      qty: parsedQty,
+      qtyPcs: pcsVal,
+      sqm: sqmVal,
+      totalAmount: activeTotalAmount,
+      account: paymentAccount,
+      unitVat: unitVatAmount,
+      totalVat: totalVatAmount,
+      discountDiff: discountDiff,
+      discountPct: discountPct
+    };
+
+    // Point 2: First product is immediately placed into addedProducts list so it displays below the button
+    setAddedProducts(prev => [...prev, newSubProduct]);
+
+    // Reset current active selection into blank, ready to select next product
+    setSelectedItemId("");
+    setQuantityInput("");
+    setSellingPriceInput("");
+    setIsCustomPrice(false);
+  };
+
+  const handleEditSubProduct = (sub) => {
+    setSelectedItemId(sub.itemId);
+    setSelectedColor(sub.color || "Standard");
+    setSellingPriceInput(String(sub.sellingPrice));
+    setIsCustomPrice(true);
+    setQuantityInput(String(sub.qty));
+    setPaymentAccount(sub.account || "Cash");
+    setAddedProducts(prev => prev.filter(p => p.subId !== sub.subId));
+  };
+
+  const handleRemoveSubProduct = (subId) => {
+    setAddedProducts(prev => prev.filter(p => p.subId !== subId));
+  };
+
+  // Stage full sale into Daily Sales Ledger
+  const handleAddSaleToLedger = () => {
+    // Collect all items: addedProducts + active item if parsedQty > 0
+    let itemsToStage = [...addedProducts];
+
+    if (parsedQty > 0 && activeItem) {
+      const isSqmProduct = activeItem.unit === "sqm";
+      const sqmVal = isSqmProduct ? parsedQty : null;
+      const pcsVal = isSqmProduct 
+        ? (activeItem.pcs_per_sqm ? Math.round(parsedQty * activeItem.pcs_per_sqm) : parsedQty)
+        : parsedQty;
+
+      itemsToStage.push({
+        subId: "sub-" + Date.now(),
+        itemId: activeItem.id,
+        itemName: activeItem.name,
+        category: activeItem.category,
+        color: selectedColor,
+        size: Ua(activeItem),
+        unit: activeItem.unit,
+        sellingUnit: activePricelist.unitLabel,
+        pcsPerSqm: activeItem.pcs_per_sqm,
+        pricelistPrice: activePricelist.defaultPrice,
+        sellingPrice: effectiveUnitPrice,
+        qty: parsedQty,
+        qtyPcs: pcsVal,
+        sqm: sqmVal,
+        totalAmount: activeTotalAmount,
+        account: paymentAccount,
+        unitVat: unitVatAmount,
+        totalVat: totalVatAmount,
+        discountDiff: discountDiff,
+        discountPct: discountPct
+      });
+    }
+
+    if (itemsToStage.length === 0) {
+      alert("Please select a product and enter a quantity before staging to ledger.");
+      return;
+    }
+
+    const totalPcs = itemsToStage.reduce((sum, it) => sum + (it.qtyPcs || it.qty), 0);
+    const totalSqm = itemsToStage.reduce((sum, it) => sum + (it.sqm || 0), 0);
+    const totalAmount = itemsToStage.reduce((sum, it) => sum + it.totalAmount, 0);
+
+    const stagedSaleObj = {
+      id: editingSaleId || ("staged-sale-" + Date.now()),
+      customerName: customerName.trim() || "Walk-in Customer",
+      customerContacts: customerContacts.trim() || "N/A",
+      deliverySite: deliverySite.trim() || "Factory Collection",
+      customerTin: customerTin.trim() || "N/A",
+      date: saleDate,
+      items: itemsToStage,
+      totalPcs,
+      totalSqm: Number(totalSqm.toFixed(2)),
+      totalAmount
+    };
+
+    if (editingSaleId) {
+      setStagedSales(prev => {
+        const exists = prev.some(s => s.id === editingSaleId);
+        if (exists) {
+          return prev.map(s => s.id === editingSaleId ? stagedSaleObj : s);
+        }
+        return [stagedSaleObj, ...prev];
+      });
+      setEditingSaleId(null);
+    } else {
+      setStagedSales(prev => [stagedSaleObj, ...prev]);
+    }
+
+    // Reset customer and active fields
+    setCustomerName("");
+    setCustomerContacts("");
+    setDeliverySite("");
+    setCustomerTin("");
+    setSelectedItemId("");
+    setAddedProducts([]);
+    setQuantityInput("");
+    setSellingPriceInput("");
+    setIsCustomPrice(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSaleId(null);
+    setCustomerName("");
+    setCustomerContacts("");
+    setDeliverySite("");
+    setCustomerTin("");
+    setSelectedItemId("");
+    setAddedProducts([]);
+    setQuantityInput("");
+    setSellingPriceInput("");
+    setIsCustomPrice(false);
+  };
+
+  const handleEditStagedSale = (sale) => {
+    setEditingSaleId(sale.id);
+    setCustomerName(sale.customerName);
+    setCustomerContacts(sale.customerContacts);
+    setDeliverySite(sale.deliverySite === "Factory Collection" ? "" : sale.deliverySite);
+    setCustomerTin(sale.customerTin === "N/A" ? "" : sale.customerTin);
+    setSaleDate(sale.date);
+
+    if (sale.items && sale.items.length > 0) {
+      const first = sale.items[0];
+      setSelectedItemId(first.itemId);
+      setSelectedColor(first.color || "Standard");
+      setSellingPriceInput(first.sellingPrice ? String(first.sellingPrice) : "");
+      setIsCustomPrice(true);
+      setQuantityInput(String(first.qty));
+      setPaymentAccount(first.account || "Cash");
+
+      // Remaining items into addedProducts
+      setAddedProducts(sale.items.slice(1));
+    }
+    // Scroll up smoothly so user can see and edit the fields
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {}
+  };
+
+  const handleDeleteStagedSale = (saleId) => {
+    if (window.confirm("Remove this staged sale from the Daily Sales Ledger?")) {
+      if (editingSaleId === saleId) {
+        handleCancelEdit();
+      }
+      setStagedSales(prev => prev.filter(s => s.id !== saleId));
+    }
+  };
+
+  // Open verification & confirmation popup modal (just like in production page)
+  const handleOpenConfirmModal = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    if (stagedSales.length === 0) {
+      if ((activeItem && parsedQty > 0) || addedProducts.length > 0) {
+        handleAddSaleToLedger();
+        setShowConfirmModal(true);
+        return;
+      }
+      alert("No sales staged in the Daily Sales Ledger to confirm. Please select a product and click '+ Add Sale to Ledger'.");
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
+  // Final Confirmation: Save & Deduct Stock from Inventory (Executed from confirmation modal)
+  const handleExecuteDispatch = async () => {
+    let salesToConfirm = [...stagedSales];
+
+    if (salesToConfirm.length === 0) {
+      setShowConfirmModal(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    const movementsToInsert = [];
+    const dispatchBatchId = crypto.randomUUID ? crypto.randomUUID() : ("dispatch-" + Date.now());
+
+    let grandTotalPcs = 0;
+    let grandTotalSqm = 0;
+
+    for (const sale of salesToConfirm) {
+      for (const item of sale.items) {
+        const catItem = a.find(it => it.id === item.itemId);
+        if (!catItem) continue;
+
+        const effectiveColor = item.color === "Standard" ? null : item.color;
+        const isSqm = catItem.unit === "sqm";
+        const deltaVal = isSqm && item.sqm !== null ? item.sqm : item.qtyPcs;
+        const negativeDelta = -Math.abs(deltaVal);
+
+        grandTotalPcs += (item.qtyPcs || item.qty);
+        if (item.sqm) grandTotalSqm += item.sqm;
+
+        movementsToInsert.push({
+          item_id: catItem.id,
+          type: "dispatch_out",
+          color: effectiveColor,
+          quantity_pcs: item.qtyPcs || item.qty,
+          quantity_sqm: item.sqm,
+          delta: negativeDelta,
+          date: sale.date,
+          note: `Customer: ${sale.customerName} | Dest: ${sale.deliverySite} | TIN: ${sale.customerTin} | Acc: ${item.account}`,
+          batch_id: dispatchBatchId,
+          price_per_unit: item.sellingPrice,
+          total_price: item.totalAmount,
+          customer_name: sale.customerName,
+          customer_phone: sale.customerContacts,
+          unit_sold_as: item.sellingUnit || catItem.unit
+        });
+      }
+    }
+
+    const success = await u(movementsToInsert);
+    setIsSubmitting(false);
+
+    if (success) {
+      try {
+        Ga({ particleCount: 50, spread: 60, origin: { y: 0.6 }, colors: ["#ef4444", "#f97316", "#3b82f6"] });
+      } catch (err) {}
+
+      setShowConfirmModal(false);
+
+      setSuccessBanner({
+        totalPcs: grandTotalPcs,
+        totalSqm: Number(grandTotalSqm.toFixed(2)),
+        saleCount: salesToConfirm.length,
+        itemCount: movementsToInsert.length
+      });
+
+      // Clear draft storage after successful dispatch
+      try {
+        window._stumarcot_sales_draft = null;
+        // in-memory cleared
+      } catch (err) {}
+
+      setStagedSales([]);
+      setAddedProducts([]);
+      setCustomerName("");
+      setCustomerContacts("");
+      setDeliverySite("");
+      setCustomerTin("");
+      setSelectedItemId("");
+      setQuantityInput("");
+      setSellingPriceInput("");
+      setIsCustomPrice(false);
+    }
+  };
+
+  return o.jsxs("div", {
+    style: { display: "flex", flexDirection: "column", gap: "16px", maxWidth: "900px", margin: "0 auto", width: "100%" },
+    children: [
+      
+      // Top Header
+      o.jsxs("div", {
+        style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" },
+        children: [
+          o.jsxs("div", {
+            children: [
+              o.jsx("h1", {
+                style: { fontSize: "clamp(18px, 4vw, 22px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#f8fafc", margin: 0 },
+                children: "Sales / Dispatch (Deduct Stock)"
+              }),
+              o.jsx("p", {
+                style: { fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" },
+                children: "Record outgoing customer dispatches & sales to deduct from inventory"
+              })
+            ]
+          }),
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-surface-elevated)", padding: "6px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-subtle)" },
+            children: [
+              o.jsx(ni, { size: 15, color: "#f87171" }),
+              o.jsx("input", {
+                type: "date",
+                value: saleDate,
+                onChange: e => setSaleDate(e.target.value),
+                style: { background: "transparent", border: "none", color: "#f8fafc", fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 600, outline: "none" }
+              })
+            ]
+          })
+        ]
+      }),
+
+      // Success Notification Card
+      successBanner && o.jsxs("div", {
+        className: "card",
+        style: { background: "linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(15, 23, 42, 0.95))", borderColor: "rgba(239, 68, 68, 0.4)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", gap: "10px" },
+            children: [
+              o.jsx(pn, { size: 24, color: "#ef4444" }),
+              o.jsxs("div", {
+                children: [
+                  o.jsx("div", { style: { fontWeight: 700, fontSize: "14px", color: "#f87171" }, children: "Sales Dispatch Recorded! Stock Deducted." }),
+                  o.jsxs("div", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: ["Deducted -", successBanner.totalPcs.toLocaleString(), " pcs ", successBanner.totalSqm > 0 ? "(-" + successBanner.totalSqm + " m²)" : "", " across ", successBanner.saleCount, " sales (", successBanner.itemCount, " items)."] })
+                ]
+              })
+            ]
+          }),
+          o.jsx("button", {
+            onClick: () => setSuccessBanner(null),
+            className: "btn btn-ghost btn-sm",
+            style: { color: "var(--text-muted)" },
+            children: "✕"
+          })
+        ]
+      }),
+
+      // Card 1: Customer Details (Sticky Across Multiple Products)
+      o.jsx("div", {
+        className: "card",
+        style: { padding: "16px", background: "var(--bg-surface-card)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)" },
+        children: o.jsxs("div", {
+          style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" },
+          children: [
+            // Field 1: Customer Name
+            o.jsxs("div", {
+              children: [
+                o.jsx("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }, children: "Customer / Buyer Name (Optional)" }),
+                o.jsx("input", {
+                  type: "text",
+                  className: "input-field",
+                  placeholder: "e.g. Salim Ali, Techno Construction...",
+                  value: customerName,
+                  onChange: e => setCustomerName(e.target.value),
+                  style: { fontSize: "13.5px" }
+                })
+              ]
+            }),
+
+            // Field 2: Contacts with Point 1 Tanzanian Phone Validation
+            o.jsxs("div", {
+              children: [
+                o.jsxs("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }, children: [
+                  o.jsx("span", { children: "Contacts / Phone (Optional)" }),
+                  customerContacts.trim().length > 0 && (
+                    isPhoneValid 
+                      ? o.jsx("span", { style: { color: "#34d399", fontSize: "11px", fontWeight: 700 }, children: "✓ Valid TZ Phone" })
+                      : o.jsx("span", { style: { color: "var(--text-muted)", fontSize: "11px" }, children: "07... / 06... recommended" })
+                  )
+                ]}),
+                o.jsx("input", {
+                  type: "tel",
+                  className: "input-field mono",
+                  placeholder: "e.g. 0712 345 678 or +255 712 345 678",
+                  value: customerContacts,
+                  onChange: e => setCustomerContacts(e.target.value),
+                  style: {
+                    fontSize: "13.5px",
+                    borderColor: customerContacts.trim().length > 0 ? (isPhoneValid ? "#10b981" : "var(--border-subtle)") : "var(--border-subtle)"
+                  }
+                })
+              ]
+            }),
+
+            // Field 3: Delivery Site
+            o.jsxs("div", {
+              children: [
+                o.jsx("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }, children: "Delivery Site / Truck Plate (Optional)" }),
+                o.jsx("input", {
+                  type: "text",
+                  className: "input-field",
+                  placeholder: "e.g. Mikocheni Site, Truck T832...",
+                  value: deliverySite,
+                  onChange: e => setDeliverySite(e.target.value),
+                  style: { fontSize: "13.5px" }
+                })
+              ]
+            }),
+
+            // Field 4: TIN NO
+            o.jsxs("div", {
+              children: [
+                o.jsx("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }, children: "TIN NO" }),
+                o.jsx("input", {
+                  type: "text",
+                  className: "input-field",
+                  placeholder: "e.g. 123-456-789...",
+                  value: customerTin,
+                  onChange: e => setCustomerTin(e.target.value),
+                  style: { fontSize: "13.5px" }
+                })
+              ]
+            })
+          ]
+        })
+      }),
+
+      // Card 2: Sales (Product Details & Money Details)
+      o.jsxs("div", {
+        className: "card",
+        style: {
+          padding: "18px",
+          background: "var(--bg-surface-card)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "var(--radius-lg)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px"
+        },
+        children: [
+          // Header of Card 2
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "10px" },
+            children: [
+              o.jsx("h2", { style: { fontSize: "18px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Sales" }),
+              o.jsx("span", { style: { fontSize: "11.5px", color: "var(--text-muted)", fontWeight: 600 }, children: "Primary Product (High-Velocity Tracked)" })
+            ]
+          }),
+
+          // Form Area: Product hero, Money & Quantity inputs, Add Product button & Subcards
+          o.jsxs("div", {
+            style: { display: "flex", flexDirection: "column", gap: "16px" },
+            children: [
+                // Product Hero Banner: Always visible with either active product or "Select Product" prompt
+                o.jsxs("div", {
+                  style: { background: "var(--bg-surface-elevated)", border: "1px solid var(--border-subtle)", borderRadius: "12px", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" },
+                  children: [
+                    // Left: Change/Select Product Button & Color Picker
+                    o.jsxs("div", {
+                      style: { display: "flex", flexDirection: "column", gap: "8px", minWidth: "150px" },
+                      children: [
+                        o.jsxs("button", {
+                          type: "button",
+                          onClick: () => setShowProductModal(true),
+                          className: activeItem ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm",
+                          style: { background: activeItem ? "var(--bg-input)" : undefined, border: "1px solid var(--border-subtle)", color: "#f8fafc", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", width: "160px" },
+                          children: [
+                            o.jsx("span", { children: activeItem ? "Change Product" : "Select Product" }),
+                            o.jsx(activeItem ? wc : vr, { size: 14, color: activeItem ? "var(--text-muted)" : "#ffffff" })
+                          ]
+                        }),
+                        activeItem && activeItem.colors && activeItem.colors.length > 0 && o.jsxs("div", {
+                          style: { position: "relative" },
+                          children: [
+                            o.jsxs("button", {
+                              type: "button",
+                              onClick: () => setShowColorDropdown(!showColorDropdown),
+                              className: "btn btn-secondary btn-sm",
+                              style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", color: "#f8fafc", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", width: "160px" },
+                              children: [
+                                o.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "6px" }, children: [
+                                  o.jsx("span", { style: { color: "var(--text-secondary)" }, children: "Color:" }),
+                                  o.jsx(xr, { color: selectedColor, showCount: false }),
+                                  o.jsx("strong", { children: selectedColor })
+                                ]}),
+                                o.jsx(wc, { size: 12, color: "var(--text-muted)" })
+                              ]
+                            }),
+                            showColorDropdown && o.jsx("div", {
+                              style: { position: "absolute", top: "100%", left: 0, marginTop: "4px", width: "160px", background: "var(--bg-surface-elevated)", border: "1px solid var(--border-subtle)", borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.5)", zIndex: 30, padding: "4px" },
+                              children: activeItem.colors.map(col => o.jsxs("button", {
+                                key: col,
+                                type: "button",
+                                onClick: () => handleSelectColor(col),
+                                style: { display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "6px 10px", background: selectedColor === col ? "rgba(249,115,22,0.15)" : "transparent", border: "none", borderRadius: "6px", color: "#f8fafc", fontSize: "12px", cursor: "pointer", textAlign: "left" },
+                                children: [
+                                  o.jsx(xr, { color: col, showCount: false }),
+                                  o.jsx("span", { children: col })
+                                ]
+                              }))
+                            })
+                          ]
+                        })
+                      ]
+                    }),
+
+                    // Center: Product Name, Category & Specs
+                    o.jsxs("div", {
+                      style: { textAlign: "center", flex: 1, minWidth: "180px" },
+                      children: [
+                        o.jsx("div", { style: { fontSize: "11px", fontWeight: 700, color: "var(--brand-400)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "2px" }, children: activeItem ? activeItem.category : "PRODUCT CATALOG" }),
+                        o.jsxs("div", {
+                          style: { display: "inline-flex", alignItems: "center", gap: "8px" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "clamp(18px, 3vw, 24px)", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em" }, children: activeItem ? activeItem.name : "Select a Product to Sell" }),
+                            activeItem && selectedColor && selectedColor !== "Standard" && o.jsxs("span", {
+                              className: "badge",
+                              style: { background: "rgba(255,255,255,0.08)", border: "1px solid var(--border-subtle)", color: "#f8fafc", fontSize: "11px", padding: "2px 8px" },
+                              children: [o.jsx(xr, { color: selectedColor, showCount: false }), selectedColor]
+                            })
+                          ]
+                        }),
+                        o.jsx("div", { style: { fontSize: "12px", fontWeight: 600, color: "var(--brand-400)", marginTop: "2px" }, children: activeItem ? (activeItem.unit === "sqm" && activeItem.pcs_per_sqm ? activeItem.pcs_per_sqm + " pcs/sqm" : (Ua(activeItem) || activeItem.unit)) : "Click 'Select Product' button to choose item" })
+                      ]
+                    }),
+
+                    // Right: Stock & Accurate Pricelist Indicator
+                    o.jsxs("div", {
+                      style: { textAlign: "right", minWidth: "180px", display: "flex", flexDirection: "column", gap: "6px" },
+                      children: [
+                        o.jsxs("div", {
+                          style: { fontSize: "12px", color: "var(--text-secondary)" },
+                          children: [
+                            "Current In Stock: ",
+                            o.jsx("strong", { style: { color: "#f8fafc" }, children: activeItem ? (activeStock ? activeStock.total_pcs + " pcs" : "0 pcs") : "—" }),
+                            activeStock && activeStock.total_sqm !== null && o.jsxs("span", { style: { color: "var(--brand-400)", marginLeft: "4px" }, children: ["(", activeStock.total_sqm, " m²)"] })
+                          ]
+                        }),
+                        o.jsxs("div", {
+                          style: { display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" },
+                          children: [
+                            o.jsxs("span", { style: { fontSize: "12px", fontWeight: 700, color: "#f8fafc" }, children: ["Unit price :"] }),
+                            o.jsx("div", {
+                              style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", padding: "4px 10px", fontSize: "12.5px", fontFamily: "var(--font-mono)", color: "var(--brand-400)", fontWeight: 700 },
+                              children: activeItem && activePricelist.defaultPrice > 0 ? formatMoney(activePricelist.defaultPrice) + " Tsh/" + activePricelist.unitLabel : "price as per pricelist"
+                            })
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+
+                // Inputs Layout: Exact User Specification
+                // At Top: 3 things (selling price, qty, account)
+                // Below: 2 things (total amount, vat section)
+                o.jsxs("div", {
+                  style: { display: "flex", flexDirection: "column", gap: "16px" },
+                  children: [
+                    // Top Row: 3 things (Selling price, Qty, Account)
+                    o.jsxs("div", {
+                      style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", alignItems: "start" },
+                      children: [
+                        // 1. Selling price
+                        o.jsxs("div", {
+                          children: [
+                            o.jsxs("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }, children: [
+                              o.jsxs("span", { children: ["Selling price", activePricelist.unitLabel ? " (per " + activePricelist.unitLabel + ")" : ""] }),
+                              isCustomPrice && o.jsx("button", {
+                                type: "button",
+                                onClick: () => { setIsCustomPrice(false); setSellingPriceInput(""); },
+                                style: { background: "none", border: "none", color: "var(--brand-400)", fontSize: "11px", cursor: "pointer", textDecoration: "underline" },
+                                children: "Reset to pricelist"
+                              })
+                            ]}),
+                            o.jsx("input", {
+                              type: "number",
+                              className: "input-field mono",
+                              placeholder: activePricelist.defaultPrice > 0 ? String(activePricelist.defaultPrice) : "Unit price as per pricelist",
+                              value: isCustomPrice ? sellingPriceInput : (activePricelist.defaultPrice > 0 ? activePricelist.defaultPrice : ""),
+                              onChange: e => {
+                                setIsCustomPrice(true);
+                                setSellingPriceInput(e.target.value);
+                              },
+                              style: { fontSize: "15px", fontWeight: 700, color: "#f8fafc" }
+                            })
+                          ]
+                        }),
+
+                        // 2. Qty
+                        o.jsxs("div", {
+                          children: [
+                            o.jsxs("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }, children: [
+                              o.jsxs("span", { children: ["Qty", activePricelist.unitLabel ? " (" + activePricelist.unitLabel + ")" : ""] }),
+                              parsedQty > 0 && activePricelist.isSqm && activeItem && activeItem.pcs_per_sqm && o.jsxs("span", { style: { color: "var(--brand-400)", fontSize: "11px" }, children: ["≈ ", Math.round(parsedQty * activeItem.pcs_per_sqm), " pcs"] })
+                            ]}),
+                            o.jsx("input", {
+                              type: "number",
+                              min: "0",
+                              step: "any",
+                              className: "input-field mono",
+                              placeholder: activePricelist.isSqm ? "Qty in m²..." : "Qty in pcs...",
+                              value: quantityInput,
+                              onChange: e => setQuantityInput(e.target.value),
+                              style: { fontSize: "16px", fontWeight: 700, color: "#f8fafc" }
+                            })
+                          ]
+                        }),
+
+                        // 3. Account
+                        o.jsxs("div", {
+                          children: [
+                            o.jsx("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }, children: "Account" }),
+                            o.jsxs("select", {
+                              className: "input-field",
+                              value: paymentAccount,
+                              onChange: e => setPaymentAccount(e.target.value),
+                              style: { fontSize: "13.5px", fontWeight: 600, color: "#f8fafc", cursor: "pointer", height: "46px" },
+                              children: [
+                                o.jsx("option", { value: "Cash", children: "Cash" }),
+                                o.jsx("option", { value: "CRDB Bank", children: "CRDB Bank" }),
+                                o.jsx("option", { value: "NMB Bank", children: "NMB Bank" }),
+                                o.jsx("option", { value: "M-Pesa", children: "M-Pesa" }),
+                                o.jsx("option", { value: "Airtel Money", children: "Airtel Money" }),
+                                o.jsx("option", { value: "Tigo Pesa", children: "Tigo Pesa" }),
+                                o.jsx("option", { value: "Credit / Invoice", children: "Credit / Invoice" })
+                              ]
+                            })
+                          ]
+                        })
+                      ]
+                    }),
+
+                    // Below: 2 things (Total amount, VAT section)
+                    o.jsxs("div", {
+                      style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px", alignItems: "end" },
+                      children: [
+                        // 1. Total Amount
+                        o.jsxs("div", {
+                          children: [
+                            o.jsx("label", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }, children: "Total Amount" }),
+                            o.jsx("input", {
+                              type: "text",
+                              readOnly: true,
+                              className: "input-field mono",
+                              value: activeTotalAmount > 0 ? formatMoney(activeTotalAmount) + " Tsh" : "",
+                              placeholder: "0 Tsh",
+                              style: { fontSize: "16px", fontWeight: 800, color: "#f8fafc", background: "var(--bg-input)", border: "1px solid var(--border-subtle)", cursor: "default", height: "46px" }
+                            })
+                          ]
+                        }),
+
+                        // 2. VAT section (heading removed since section shows VAT or discount)
+                        o.jsx("div", {
+                          children: [
+                            o.jsx("div", {
+                              style: {
+                                background: "var(--bg-surface-elevated)",
+                                border: discountDiff > 0 ? "1px solid rgba(234, 179, 8, 0.3)" : "1px solid var(--border-subtle)",
+                                borderRadius: "var(--radius-md)",
+                                padding: "6px 14px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                flexWrap: "wrap",
+                                gap: "8px",
+                                minHeight: "46px",
+                                boxSizing: "border-box"
+                              },
+                              children: discountDiff > 0 ? o.jsxs(o.Fragment, {
+                                children: [
+                                  o.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "6px" }, children: [
+                                    o.jsx("span", { style: { fontSize: "13px" }, children: "🏷️" }),
+                                    o.jsxs("span", { style: { fontSize: "12px", fontWeight: 700, color: "#eab308" }, children: ["Discount: -Tsh ", formatMoney(discountDiff), "/", activePricelist.unitLabel, " (", discountPct.toFixed(1), "%)"] })
+                                  ]}),
+                                  o.jsxs("div", { style: { fontSize: "11.5px", color: "var(--text-secondary)" }, children: [
+                                    "Total Saved: ",
+                                    o.jsx("strong", { style: { color: "#eab308" }, children: ["Tsh ", formatMoney(discountDiff * parsedQty)] })
+                                  ]})
+                                ]
+                              }) : discountDiff < 0 ? o.jsxs(o.Fragment, {
+                                children: [
+                                  o.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "6px" }, children: [
+                                    o.jsx("span", { style: { fontSize: "13px" }, children: "📈" }),
+                                    o.jsxs("span", { style: { fontSize: "12px", fontWeight: 700, color: "var(--brand-400)" }, children: ["Above List: +Tsh ", formatMoney(Math.abs(discountDiff)), "/", activePricelist.unitLabel] })
+                                  ]}),
+                                  o.jsxs("div", { style: { fontSize: "11.5px", color: "var(--text-secondary)" }, children: [
+                                    "Total Premium: ",
+                                    o.jsx("strong", { style: { color: "var(--brand-400)" }, children: ["Tsh ", formatMoney(Math.abs(discountDiff) * parsedQty)] })
+                                  ]})
+                                ]
+                              }) : o.jsxs(o.Fragment, {
+                                children: [
+                                  o.jsxs("div", {
+                                    style: { display: "flex", alignItems: "center", gap: "6px" },
+                                    children: [
+                                      o.jsx("span", { style: { fontSize: "13px" }, children: "🧾" }),
+                                      o.jsxs("div", {
+                                        style: { display: "flex", flexDirection: "column", lineHeight: 1.15 },
+                                        children: [
+                                          o.jsxs("span", { style: { fontSize: "12px", fontWeight: 700, color: "#f8fafc" }, children: ["VAT : Tsh ", formatMoney(unitVatAmount), activePricelist.unitLabel ? "/" + activePricelist.unitLabel : ""] }),
+                                          o.jsx("span", { style: { fontSize: "9.5px", color: "var(--text-muted)", fontWeight: 500 }, children: "18%" })
+                                        ]
+                                      })
+                                    ]
+                                  }),
+                                  o.jsxs("div", { style: { fontSize: "11.5px", color: "var(--text-secondary)" }, children: [
+                                    "Total VAT: ",
+                                    o.jsx("strong", { style: { color: "#f8fafc" }, children: ["Tsh ", formatMoney(totalVatAmount)] })
+                                  ]})
+                                ]
+                              })
+                            })
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+
+                // Button: Add Another Product to Sale
+                o.jsxs("button", {
+                  type: "button",
+                  onClick: handleAddAnotherProduct,
+                  className: "btn btn-secondary",
+                  style: { borderStyle: "dashed", borderColor: "rgba(249, 115, 22, 0.45)", color: "var(--brand-400)", width: "100%", minHeight: "44px", fontWeight: 700 },
+                  children: [
+                    o.jsx(vr, { size: 16 }),
+                    o.jsx("span", { children: "+ Add Another Product to Sale" })
+                  ]
+                }),
+
+                // Subcard list: auto-summarized products added to this customer sale
+                // ALWAYS visible right below the "+ Add Another Product to Sale" button!
+                // Appears immediately when product is added, before selecting another product.
+                addedProducts.length > 0 && o.jsxs("div", {
+                  style: { display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" },
+                  children: [
+                    o.jsxs("div", {
+                      style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+                      children: [
+                        o.jsxs("span", { children: ["Items in this Customer Sale (", addedProducts.length, ")"] }),
+                        o.jsxs("span", { style: { color: "#f8fafc", fontWeight: 800 }, children: ["Subtotal: ", formatMoney(addedProducts.reduce((sum, p) => sum + p.totalAmount, 0)), " Tsh"] })
+                      ]
+                    }),
+                    addedProducts.map((sub, idx) => o.jsxs("div", {
+                      key: sub.subId,
+                      style: { background: "var(--bg-surface-elevated)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" },
+                      children: [
+                        o.jsxs("div", {
+                          style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", flex: 1 },
+                          children: [
+                            o.jsxs("span", { style: { fontWeight: 800, fontSize: "11.5px", color: "var(--brand-400)" }, children: ["#", idx + 1] }),
+                            o.jsxs("strong", { style: { fontSize: "13.5px", color: "#f8fafc" }, children: [sub.itemName, sub.color && sub.color !== "Standard" ? " (" + sub.color + ")" : ""] }),
+                            o.jsxs("span", { style: { fontSize: "12px", color: "#f8fafc", fontWeight: 700, fontFamily: "var(--font-mono)" }, children: [sub.qty, " ", sub.sellingUnit, sub.qtyPcs && sub.sellingUnit === "m²" ? " (" + sub.qtyPcs + " pcs)" : ""] }),
+                            o.jsxs("span", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: ["@", formatMoney(sub.sellingPrice), " Tsh"] }),
+                            o.jsxs("span", { style: { fontSize: "12.5px", fontWeight: 700, color: "#f8fafc" }, children: ["= ", formatMoney(sub.totalAmount), " Tsh"] }),
+                            o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10px", padding: "1px 6px" }, children: sub.account })
+                          ]
+                        }),
+                        o.jsxs("div", {
+                          style: { display: "flex", alignItems: "center", gap: "4px" },
+                          children: [
+                            o.jsx("button", {
+                              type: "button",
+                              onClick: () => handleEditSubProduct(sub),
+                              className: "btn-ghost",
+                              style: { padding: "4px 6px", color: "var(--brand-400)", cursor: "pointer", border: "none", background: "none", fontSize: "12px" },
+                              title: "Edit item",
+                              children: "✏️"
+                            }),
+                            o.jsx("button", {
+                              type: "button",
+                              onClick: () => handleRemoveSubProduct(sub.subId),
+                              className: "btn-ghost",
+                              style: { padding: "4px 6px", color: "#f87171", cursor: "pointer", border: "none", background: "none", fontSize: "13px" },
+                              title: "Remove item",
+                              children: "✕"
+                            })
+                          ]
+                        })
+                      ]
+                    }))
+                  ]
+                })
+              ]
+            })
+          ]
+        }),
+      // Action Button: Add Sale to Ledger / Update Staged Sale
+      editingSaleId ? o.jsxs("div", {
+        style: { display: "flex", gap: "10px", width: "100%" },
+        children: [
+          o.jsxs("button", {
+            type: "button",
+            onClick: handleAddSaleToLedger,
+            disabled: (!activeItem && addedProducts.length === 0) || (activeItem && parsedQty <= 0 && addedProducts.length === 0),
+            className: "btn",
+            style: {
+              flex: 1,
+              minHeight: "48px",
+              background: "rgba(249, 115, 22, 0.15)",
+              border: "1px solid var(--brand-500)",
+              color: "var(--brand-400)",
+              fontSize: "14.5px",
+              fontWeight: 700,
+              borderRadius: "var(--radius-md)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px"
+            },
+            children: [
+              o.jsx(vr, { size: 18 }),
+              o.jsx("span", { children: "Update Staged Sale in Ledger" })
+            ]
+          }),
+          o.jsx("button", {
+            type: "button",
+            onClick: handleCancelEdit,
+            className: "btn btn-secondary",
+            style: {
+              minHeight: "48px",
+              padding: "0 18px",
+              fontSize: "13.5px",
+              fontWeight: 600,
+              borderRadius: "var(--radius-md)",
+              cursor: "pointer"
+            },
+            children: "Cancel Edit"
+          })
+        ]
+      }) : o.jsxs("button", {
+        type: "button",
+        onClick: handleAddSaleToLedger,
+        disabled: (!activeItem && addedProducts.length === 0) || (activeItem && parsedQty <= 0 && addedProducts.length === 0),
+        className: "btn",
+        style: {
+          width: "100%",
+          minHeight: "48px",
+          background: ((activeItem && parsedQty > 0) || addedProducts.length > 0) ? "rgba(249, 115, 22, 0.15)" : "rgba(255,255,255,0.03)",
+          border: ((activeItem && parsedQty > 0) || addedProducts.length > 0) ? "1px dashed var(--brand-500)" : "1px dashed var(--border-subtle)",
+          color: ((activeItem && parsedQty > 0) || addedProducts.length > 0) ? "var(--brand-400)" : "var(--text-muted)",
+          fontSize: "14.5px",
+          fontWeight: 700,
+          borderRadius: "var(--radius-md)",
+          cursor: ((activeItem && parsedQty > 0) || addedProducts.length > 0) ? "pointer" : "not-allowed",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px"
+        },
+        children: [
+          o.jsx(vr, { size: 18 }),
+          o.jsx("span", { children: "+ Add Sale to Ledger" })
+        ]
+      }),
+
+      // Card 3: Daily Sales Ledger
+      o.jsxs("div", {
+        className: "card",
+        style: { padding: "18px", background: "var(--bg-surface-card)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", display: "flex", flexDirection: "column", gap: "12px" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "10px" },
+            children: [
+              o.jsxs("div", {
+                style: { display: "flex", alignItems: "center", gap: "8px" },
+                children: [
+                  o.jsx("h2", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Daily Sales Ledger" }),
+                  o.jsxs("span", {
+                    className: "badge",
+                    style: { background: "rgba(255,255,255,0.06)", border: "1px solid var(--border-subtle)", color: stagedSales.length > 0 ? "var(--brand-400)" : "var(--text-muted)", fontSize: "11px", fontWeight: 700 },
+                    children: [stagedSales.length, " Sales Staged"]
+                  })
+                ]
+              }),
+              o.jsx("span", { style: { fontSize: "11.5px", color: "var(--text-muted)" }, children: "Review & confirm sales dispatches" })
+            ]
+          }),
+
+          // Ledger Table / Cards (3 Columns Layout as specified)
+          stagedSales.length === 0 ? o.jsx("div", {
+            style: { padding: "24px 16px", textAlign: "center", background: "rgba(0, 0, 0, 0.2)", borderRadius: "8px", border: "1px dashed var(--border-subtle)", color: "var(--text-muted)", fontSize: "12.5px" },
+            children: 'No sales staged in the ledger yet. Fill customer & product details above and click "+ Add Sale to Ledger".'
+          }) : o.jsx("div", {
+            style: { display: "flex", flexDirection: "column", gap: "10px" },
+            children: stagedSales.map(sale => {
+              const isSingleItem = sale.items.length === 1;
+
+              return o.jsxs("div", {
+                key: sale.id,
+                style: {
+                  background: editingSaleId === sale.id ? "rgba(249, 115, 22, 0.12)" : "var(--bg-surface-elevated)",
+                  border: editingSaleId === sale.id ? "1px solid var(--brand-500)" : "1px solid var(--border-subtle)",
+                  borderRadius: "10px",
+                  padding: isSingleItem ? "10px 14px" : "12px 14px",
+                  display: "grid",
+                  gridTemplateColumns: "minmax(170px, 1.1fr) minmax(210px, 1.8fr) minmax(170px, 1.1fr) auto",
+                  alignItems: "center",
+                  gap: "14px",
+                  transition: "border-color 0.15s ease"
+                },
+                children: [
+                  
+                  // Left Side: Customer Details
+                  // Single line for 1 product; 3 lines for multiple products
+                  isSingleItem ? o.jsxs("div", {
+                    style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", fontSize: "12.5px" },
+                    children: [
+                      o.jsxs("strong", { style: { color: "#f8fafc", display: "inline-flex", alignItems: "center", gap: "4px" }, children: [
+                        o.jsx("span", { children: "👤" }),
+                        sale.customerName,
+                        editingSaleId === sale.id && o.jsx("span", { className: "badge", style: { background: "rgba(249, 115, 22, 0.2)", color: "var(--brand-400)", border: "1px solid var(--brand-500)", fontSize: "10px", padding: "1px 6px", fontWeight: 700, marginLeft: "4px" }, children: "Editing" })
+                      ]}),
+                      o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: ["· 📞 ", sale.customerContacts] }),
+                      sale.deliverySite && sale.deliverySite !== "Factory Collection" && o.jsxs("span", { style: { color: "var(--text-muted)" }, children: ["· 📍 ", sale.deliverySite] })
+                    ]
+                  }) : o.jsxs("div", {
+                    style: { display: "flex", flexDirection: "column", gap: "2px" },
+                    children: [
+                      o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", display: "inline-flex", alignItems: "center", gap: "4px" }, children: [
+                        o.jsx("span", { children: "👤" }),
+                        sale.customerName,
+                        editingSaleId === sale.id && o.jsx("span", { className: "badge", style: { background: "rgba(249, 115, 22, 0.2)", color: "var(--brand-400)", border: "1px solid var(--brand-500)", fontSize: "10px", padding: "1px 6px", fontWeight: 700, marginLeft: "4px" }, children: "Editing" })
+                      ]}),
+                      o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-secondary)" }, children: [
+                        "📞 ", sale.customerContacts, sale.customerTin && sale.customerTin !== "N/A" ? " · TIN: " + sale.customerTin : ""
+                      ]}),
+                      o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: [
+                        "📍 ", sale.deliverySite || "Factory Collection"
+                      ]})
+                    ]
+                  }),
+
+                  // Middle: Product Details
+                  // Single line for 1 product; Listed line-by-line in small fonts for multiple products
+                  isSingleItem ? o.jsxs("div", {
+                    style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", fontSize: "12.5px" },
+                    children: [
+                      o.jsxs("strong", { style: { color: "var(--brand-400)", display: "inline-flex", alignItems: "center", gap: "4px" }, children: [
+                        o.jsx("span", { children: "📦" }),
+                        sale.items[0].itemName,
+                        sale.items[0].color && sale.items[0].color !== "Standard" ? " (" + sale.items[0].color + ")" : ""
+                      ]}),
+                      sale.items[0].size && o.jsxs("span", { style: { color: "var(--text-muted)", fontSize: "11.5px" }, children: ["· 📐 ", sale.items[0].size] }),
+                      o.jsxs("span", { style: { color: "#f8fafc", fontWeight: 700, fontFamily: "var(--font-mono)" }, children: [
+                        "· 🔢 ", sale.totalPcs.toLocaleString(), " pcs",
+                        sale.totalSqm > 0 ? " (" + sale.totalSqm + " m²)" : ""
+                      ]})
+                    ]
+                  }) : o.jsx("div", {
+                    style: { display: "flex", flexDirection: "column", gap: "3px" },
+                    children: sale.items.map((it, idx) => o.jsxs("div", {
+                      key: it.subId || idx,
+                      style: { fontSize: "11px", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "5px", lineHeight: "1.3" },
+                      children: [
+                        o.jsxs("span", { style: { fontWeight: 700, color: "var(--brand-400)" }, children: [idx + 1, "."] }),
+                        o.jsxs("strong", { style: { color: "#f8fafc" }, children: [
+                          it.itemName,
+                          it.color && it.color !== "Standard" ? " (" + it.color + ")" : ""
+                        ]}),
+                        o.jsx("span", { style: { color: "var(--text-muted)" }, children: "—" }),
+                        o.jsxs("span", { style: { color: "#f8fafc", fontWeight: 600, fontFamily: "var(--font-mono)" }, children: [
+                          it.qty, " ", it.sellingUnit,
+                          it.qtyPcs && it.sellingUnit === "m²" ? " (" + it.qtyPcs + " pcs)" : ""
+                        ]})
+                      ]
+                    }))
+                  }),
+
+                  // Right Side: Amount and Total Amount
+                  // Single line for 1 product; 3 lines for multiple products
+                  isSingleItem ? o.jsxs("div", {
+                    style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", fontSize: "12.5px" },
+                    children: [
+                      o.jsxs("span", { style: { color: "var(--text-secondary)", fontSize: "12px" }, children: ["@", formatMoney(sale.items[0].sellingPrice), " Tsh"] }),
+                      o.jsxs("strong", { style: { color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: ["Total: ", formatMoney(sale.totalAmount), " Tsh"] }),
+                      o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10px", padding: "1px 6px" }, children: sale.items[0].account || "Cash" })
+                    ]
+                  }) : o.jsxs("div", {
+                    style: { display: "flex", flexDirection: "column", gap: "2px" },
+                    children: [
+                      o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-secondary)" }, children: [
+                        "📦 ", sale.items.length, " items (", sale.totalPcs.toLocaleString(), " pcs)"
+                      ]}),
+                      o.jsxs("div", { style: { fontSize: "13.5px", fontWeight: 800, color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
+                        "Total: ", formatMoney(sale.totalAmount), " Tsh"
+                      ]}),
+                      o.jsxs("div", { style: { fontSize: "11px", color: "var(--brand-400)", fontWeight: 600 }, children: [
+                        "🏦 ", sale.items[0].account || "Cash"
+                      ]})
+                    ]
+                  }),
+
+                  // Action Icons (View Details, Edit, Delete)
+                  o.jsxs("div", {
+                    style: { display: "flex", alignItems: "center", gap: "4px" },
+                    children: [
+                      o.jsx("button", {
+                        type: "button",
+                        onClick: () => setViewSaleDetail(sale),
+                        className: "btn-ghost",
+                        style: { padding: "6px", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", background: "none", border: "none" },
+                        title: "View Details",
+                        children: "👁️"
+                      }),
+                      o.jsx("button", {
+                        type: "button",
+                        onClick: () => handleEditStagedSale(sale),
+                        className: "btn-ghost",
+                        style: { padding: "6px", color: "var(--brand-400)", fontSize: "13px", cursor: "pointer", background: "none", border: "none" },
+                        title: "Edit Sale",
+                        children: "✏️"
+                      }),
+                      o.jsx("button", {
+                        type: "button",
+                        onClick: () => handleDeleteStagedSale(sale.id),
+                        className: "btn-ghost",
+                        style: { padding: "6px", color: "#f87171", fontSize: "13px", cursor: "pointer", background: "none", border: "none" },
+                        title: "Delete Sale",
+                        children: "🗑️"
+                      })
+                    ]
+                  })
+                ]
+              });
+            })
+          })
+        ]
+      }),
+
+      // Bottom CTA: Confirm Sales Dispatch (Deduct Stock)
+      // Refactored: Only show total sale in Tsh, bolded large
+      o.jsxs("div", {
+        className: "card-elevated",
+        style: { position: "sticky", bottom: "calc(var(--nav-bottom-height) + 10px)", zIndex: 30, padding: "14px 18px", background: "rgba(15, 23, 42, 0.96)", backdropFilter: "blur(12px)", border: "1px solid rgba(239, 68, 68, 0.4)", boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", flexDirection: "column" },
+            children: [
+              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700, marginBottom: "2px" }, children: "Total Sale" }),
+              o.jsxs("div", {
+                style: { fontSize: "24px", fontWeight: 900, color: "#f8fafc", fontFamily: "var(--font-mono)", letterSpacing: "-0.02em" },
+                children: [
+                  formatMoney(totalSalesRevenue),
+                  o.jsx("span", { style: { fontSize: "14.5px", fontWeight: 700, color: "var(--brand-400)", marginLeft: "6px" }, children: "Tsh" })
+                ]
+              })
+            ]
+          }),
+          o.jsx("button", {
+            type: "button",
+            onClick: handleOpenConfirmModal,
+            disabled: isSubmitting || (stagedSales.length === 0 && parsedQty <= 0 && addedProducts.length === 0),
+            className: "btn btn-primary btn-lg",
+            style: { background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.4)", minWidth: "240px" },
+            children: isSubmitting ? "Recording Dispatch..." : o.jsxs(o.Fragment, {
+              children: [
+                o.jsx(Vp, { size: 18 }),
+                o.jsx("span", { children: "↘ Confirm Sales Dispatch" })
+              ]
+            })
+          })
+        ]
+      }),
+
+      // Product Selection Modal
+      showProductModal && o.jsx("div", {
+        className: "modal-overlay",
+        onClick: () => setShowProductModal(false),
+        children: o.jsxs("div", {
+          className: "modal-content",
+          onClick: e => e.stopPropagation(),
+          style: { padding: "20px", maxHeight: "85vh", display: "flex", flexDirection: "column" },
+          children: [
+            o.jsxs("div", {
+              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" },
+              children: [
+                o.jsxs("div", {
+                  children: [
+                    o.jsx("h3", { style: { fontSize: "17px", fontWeight: 700 }, children: "Select Product to Sell" }),
+                    o.jsx("p", { style: { fontSize: "11.5px", color: "var(--brand-400)" }, children: "Ordered by highest volume sales velocity" })
+                  ]
+                }),
+                o.jsx("button", {
+                  type: "button",
+                  onClick: () => setShowProductModal(false),
+                  className: "btn btn-ghost btn-sm",
+                  children: o.jsx(Yn, { size: 18 })
+                })
+              ]
+            }),
+            o.jsxs("div", {
+              className: "search-wrapper",
+              style: { marginBottom: "10px" },
+              children: [
+                o.jsx(ii, { className: "search-icon", size: 18 }),
+                o.jsx("input", {
+                  type: "text",
+                  className: "input-field search-input",
+                  placeholder: "Filter product name...",
+                  value: productSearch,
+                  onChange: e => setProductSearch(e.target.value),
+                  autoFocus: true
+                })
+              ]
+            }),
+            o.jsx("div", {
+              className: "filter-tabs",
+              style: { marginBottom: "12px" },
+              children: categoriesList.map(cat => o.jsx("button", {
+                key: cat,
+                type: "button",
+                onClick: () => setProductCategoryFilter(cat),
+                className: "filter-tab " + (productCategoryFilter === cat ? "active" : ""),
+                style: { padding: "6px 12px", fontSize: "12px" },
+                children: cat
+              }))
+            }),
+            o.jsx("div", {
+              style: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" },
+              children: filteredModalProducts.map((it, idx) => {
+                const itStock = d(it.id);
+                const itPrice = getItemPricelist(it, "White");
+                return o.jsxs("button", {
+                  key: it.id,
+                  type: "button",
+                  onClick: () => {
+                    setSelectedItemId(it.id);
+                    setIsCustomPrice(false);
+                    setSellingPriceInput("");
+                    setShowProductModal(false);
+                  },
+                  style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: selectedItemId === it.id ? "rgba(249,115,22,0.15)" : "var(--bg-input)", border: selectedItemId === it.id ? "1px solid var(--brand-500)" : "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", color: "#f8fafc", cursor: "pointer", textAlign: "left" },
+                  children: [
+                    o.jsxs("div", {
+                      children: [
+                        o.jsxs("div", { style: { display: "flex", alignItems: "center", gap: "6px" }, children: [
+                          o.jsxs("span", { style: { fontSize: "10px", color: "var(--brand-400)", fontWeight: 800 }, children: ["#", idx + 1] }),
+                          o.jsx("span", { style: { fontSize: "14px", fontWeight: 700 }, children: it.name }),
+                          o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10px", padding: "1px 5px" }, children: it.category })
+                        ]}),
+                        o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }, children: [
+                          "Size: ", Ua(it), " · In stock: ",
+                          o.jsx("strong", { style: { color: itStock && itStock.total_pcs > 0 ? "#34d399" : "#f87171" }, children: itStock ? itStock.total_pcs + " pcs" : "0 pcs" })
+                        ]})
+                      ]
+                    }),
+                    o.jsxs("div", {
+                      style: { textAlign: "right" },
+                      children: [
+                        o.jsx("div", { style: { fontSize: "13px", color: "#34d399", fontWeight: 700, fontFamily: "var(--font-mono)" }, children: formatMoney(itPrice.defaultPrice) + " Tsh/" + itPrice.unitLabel }),
+                        itPrice.isSqm && it.pcs_per_sqm && o.jsxs("div", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: ["≈ ", formatMoney(Math.round(itPrice.defaultPrice / it.pcs_per_sqm)), " /pc"] })
+                      ]
+                    })
+                  ]
+                });
+              })
+            })
+          ]
+        })
+      }),
+
+      // View Sale Details Audit Modal
+      viewSaleDetail && o.jsx("div", {
+        className: "modal-overlay",
+        onClick: () => setViewSaleDetail(null),
+        children: o.jsxs("div", {
+          className: "modal-content",
+          onClick: e => e.stopPropagation(),
+          style: { padding: "20px", maxWidth: "560px" },
+          children: [
+            o.jsxs("div", {
+              style: { display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "12px", marginBottom: "14px" },
+              children: [
+                o.jsxs("div", {
+                  children: [
+                    o.jsx("h3", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc" }, children: "Staged Sale Receipt & Audit" }),
+                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: ["Date: ", viewSaleDetail.date, " · Staff: ", f || "Staff"] })
+                  ]
+                }),
+                o.jsx("button", {
+                  type: "button",
+                  onClick: () => setViewSaleDetail(null),
+                  className: "btn btn-ghost btn-sm",
+                  children: o.jsx(Yn, { size: 18 })
+                })
+              ]
+            }),
+            o.jsxs("div", {
+              style: { display: "flex", flexDirection: "column", gap: "12px" },
+              children: [
+                o.jsxs("div", {
+                  style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "12px" },
+                  children: [
+                    o.jsx("div", { style: { fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "var(--brand-400)", marginBottom: "4px" }, children: "Customer Information" }),
+                    o.jsxs("div", { style: { fontSize: "14px", fontWeight: 700, color: "#f8fafc" }, children: ["Buyer: ", viewSaleDetail.customerName] }),
+                    o.jsxs("div", { style: { fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }, children: ["Contacts: ", viewSaleDetail.customerContacts, " | TIN: ", viewSaleDetail.customerTin] }),
+                    o.jsxs("div", { style: { fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }, children: ["Destination: ", viewSaleDetail.deliverySite] })
+                  ]
+                }),
+                o.jsxs("div", {
+                  children: [
+                    o.jsx("div", { style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "6px" }, children: "Product Line Items" }),
+                    o.jsx("div", {
+                      style: { display: "flex", flexDirection: "column", gap: "6px" },
+                      children: viewSaleDetail.items.map((it, idx) => o.jsxs("div", {
+                        key: idx,
+                        style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" },
+                        children: [
+                          o.jsxs("div", {
+                            children: [
+                              o.jsxs("div", { style: { fontSize: "13px", fontWeight: 700, color: "#f8fafc" }, children: [it.itemName, it.color && it.color !== "Standard" ? " (" + it.color + ")" : ""] }),
+                              o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: [it.qty, " ", it.sellingUnit, it.qtyPcs && it.sellingUnit === "m²" ? " (" + it.qtyPcs + " pcs)" : "", " @ ", formatMoney(it.sellingPrice), " Tsh"] })
+                            ]
+                          }),
+                          o.jsxs("div", {
+                            style: { textAlign: "right" },
+                            children: [
+                              o.jsx("div", { style: { fontSize: "13px", fontWeight: 700, color: "#34d399", fontFamily: "var(--font-mono)" }, children: formatMoney(it.totalAmount) + " Tsh" }),
+                              o.jsx("div", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: it.account })
+                            ]
+                          })
+                        ]
+                      }))
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { borderTop: "1px solid var(--border-subtle)", paddingTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" },
+                  children: [
+                    o.jsxs("div", {
+                      children: [
+                        o.jsx("span", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Total Outgoing:" }),
+                        o.jsxs("div", { style: { fontSize: "15px", fontWeight: 800, color: "#f8fafc" }, children: [viewSaleDetail.totalPcs.toLocaleString(), " pcs", viewSaleDetail.totalSqm > 0 ? " (" + viewSaleDetail.totalSqm + " m²)" : ""] })
+                      ]
+                    }),
+                    o.jsxs("div", {
+                      style: { textAlign: "right" },
+                      children: [
+                        o.jsx("span", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Grand Total:" }),
+                        o.jsxs("div", { style: { fontSize: "18px", fontWeight: 800, color: "#34d399", fontFamily: "var(--font-mono)" }, children: [formatMoney(viewSaleDetail.totalAmount), " Tsh"] })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
+        })
+      }),
+
+      // CONFIRMATION POPUP MODAL (Showing all sales to be saved, just like in Production page)
+      showConfirmModal && o.jsx("div", {
+        className: "modal-overlay",
+        onClick: () => setShowConfirmModal(false),
+        children: o.jsxs("div", {
+          className: "modal-content",
+          onClick: ev => ev.stopPropagation(),
+          style: { padding: "22px", maxWidth: "620px", maxHeight: "90vh", display: "flex", flexDirection: "column", gap: "16px" },
+          children: [
+            // Header
+            o.jsxs("div", {
+              style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "12px" },
+              children: [
+                o.jsxs("div", {
+                  children: [
+                    o.jsx("h2", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Daily Sales Verification Document" }),
+                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }, children: [
+                      "Sales Date: ", o.jsx("strong", { style: { color: "#f8fafc" }, children: saleDate }),
+                      " • Total Invoices: ", o.jsx("strong", { style: { color: "#f8fafc" }, children: stagedSales.length }),
+                      " • Verified by: ", f || "Staff"
+                    ] })
+                  ]
+                }),
+                o.jsx("button", { type: "button", onClick: () => setShowConfirmModal(false), className: "btn-ghost", style: { padding: "4px", color: "var(--text-muted)" }, children: "✕" })
+              ]
+            }),
+
+            // Body
+            o.jsxs("div", {
+              style: { overflowY: "auto", display: "flex", flexDirection: "column", gap: "14px", flex: 1 },
+              children: [
+                
+                // 1. Invoices to Commit
+                o.jsxs("div", {
+                  children: [
+                    o.jsxs("span", { style: { fontSize: "12px", fontWeight: 700, color: "var(--brand-400)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "6px" }, children: ["1. Sales Invoices to Commit (", stagedSales.length, ")"] }),
+                    o.jsx("div", {
+                      style: { border: "1px solid var(--border-subtle)", borderRadius: "8px", overflow: "hidden", display: "flex", flexDirection: "column", gap: "6px", background: "rgba(0,0,0,0.2)", padding: "8px" },
+                      children: stagedSales.map((sale, sIdx) => o.jsxs("div", {
+                        key: sale.id,
+                        style: { padding: "10px 12px", background: "var(--bg-surface-elevated)", borderRadius: "6px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: "8px" },
+                        children: [
+                          o.jsxs("div", {
+                            style: { display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "6px" },
+                            children: [
+                              o.jsxs("div", {
+                                children: [
+                                  o.jsxs("strong", { style: { fontSize: "13.5px", color: "#f8fafc", display: "inline-flex", alignItems: "center", gap: "5px" }, children: [
+                                    o.jsx("span", { children: "👤" }),
+                                    sale.customerName
+                                  ]}),
+                                  o.jsxs("div", { style: { fontSize: "11px", color: "var(--text-muted)", marginTop: "1px" }, children: [
+                                    "📞 ", sale.customerContacts,
+                                    sale.deliverySite && sale.deliverySite !== "Factory Collection" ? " · 📍 " + sale.deliverySite : "",
+                                    sale.customerTin && sale.customerTin !== "N/A" ? " · TIN: " + sale.customerTin : ""
+                                  ]})
+                                ]
+                              }),
+                              o.jsxs("div", {
+                                style: { textAlign: "right" },
+                                children: [
+                                  o.jsxs("div", { style: { fontWeight: 800, color: "var(--brand-400)", fontSize: "14px", fontFamily: "var(--font-mono)" }, children: [formatMoney(sale.totalAmount), " Tsh"] }),
+                                  o.jsxs("div", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: [sale.items.length, " item(s) • ", sale.totalPcs.toLocaleString(), " pcs"] })
+                                ]
+                              })
+                            ]
+                          }),
+                          // Item list
+                          o.jsx("div", {
+                            style: { display: "flex", flexDirection: "column", gap: "4px" },
+                            children: sale.items.map((it, iIdx) => o.jsxs("div", {
+                              key: it.subId || iIdx,
+                              style: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11.5px", color: "var(--text-secondary)", background: "rgba(0,0,0,0.15)", padding: "4px 8px", borderRadius: "4px" },
+                              children: [
+                                o.jsxs("div", {
+                                  style: { display: "flex", alignItems: "center", gap: "5px" },
+                                  children: [
+                                    o.jsxs("span", { style: { color: "var(--brand-400)", fontWeight: 700 }, children: [iIdx + 1, "."] }),
+                                    o.jsxs("span", { style: { color: "#f8fafc", fontWeight: 600 }, children: [
+                                      it.itemName,
+                                      it.color && it.color !== "Standard" ? " (" + it.color + ")" : ""
+                                    ]}),
+                                    o.jsx("span", { style: { color: "var(--text-muted)" }, children: "—" }),
+                                    o.jsxs("span", { style: { fontFamily: "var(--font-mono)" }, children: [
+                                      it.qty, " ", it.sellingUnit,
+                                      it.qtyPcs && it.sellingUnit === "m²" ? " (" + it.qtyPcs + " pcs)" : ""
+                                    ]})
+                                  ]
+                                }),
+                                o.jsxs("div", {
+                                  style: { display: "flex", alignItems: "center", gap: "8px" },
+                                  children: [
+                                    o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "9.5px", padding: "1px 5px" }, children: it.account || "Cash" }),
+                                    o.jsxs("strong", { style: { color: "#34d399", fontFamily: "var(--font-mono)" }, children: [formatMoney(it.totalAmount), " Tsh"] })
+                                  ]
+                                })
+                              ]
+                            }, iIdx))
+                          })
+                        ]
+                      }, sale.id))
+                    })
+                  ]
+                }),
+
+                // 2. Total Outgoing Stock to Deduct from Inventory
+                o.jsxs("div", {
+                  children: [
+                    o.jsx("span", { style: { fontSize: "12px", fontWeight: 700, color: "var(--brand-400)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "6px" }, children: "2. Total Outgoing Stock Deductions" }),
+                    o.jsxs("div", {
+                      style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" },
+                      children: [
+                        o.jsxs("div", {
+                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Total Quantity" }),
+                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f87171", fontFamily: "var(--font-mono)" }, children: ["-", totalSalesPieces.toLocaleString(), " pcs"] })
+                          ]
+                        }),
+                        totalSalesSqm > 0 ? o.jsxs("div", {
+                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Total Area" }),
+                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f87171", fontFamily: "var(--font-mono)" }, children: ["-", totalSalesSqm.toFixed(2), " m²"] })
+                          ]
+                        }) : null,
+                        o.jsxs("div", {
+                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Total Revenue" }),
+                            o.jsxs("strong", { style: { fontSize: "16px", color: "#34d399", fontFamily: "var(--font-mono)" }, children: [formatMoney(totalSalesRevenue), " Tsh"] })
+                          ]
+                        })
+                      ]
+                    })
+                  ]
+                }),
+
+                // 3. Payment Accounts Breakdown
+                salesAccountBreakdown.length > 0 && o.jsxs("div", {
+                  children: [
+                    o.jsx("span", { style: { fontSize: "12px", fontWeight: 700, color: "var(--brand-400)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "6px" }, children: "3. Payment Accounts Breakdown" }),
+                    o.jsx("div", {
+                      style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" },
+                      children: salesAccountBreakdown.map(([acc, amt]) => o.jsxs("div", {
+                        key: acc,
+                        style: { background: "rgba(0,0,0,0.3)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center" },
+                        children: [
+                          o.jsxs("span", { style: { fontSize: "12px", color: "var(--text-secondary)", fontWeight: 600 }, children: ["🏦 ", acc] }),
+                          o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [formatMoney(amt), " Tsh"] })
+                        ]
+                      }))
+                    })
+                  ]
+                })
+
+              ]
+            }),
+
+            // Footer Buttons
+            o.jsxs("div", {
+              style: { display: "flex", gap: "10px", paddingTop: "10px", borderTop: "1px solid var(--border-subtle)" },
+              children: [
+                o.jsx("button", {
+                  type: "button",
+                  onClick: () => setShowConfirmModal(false),
+                  className: "btn btn-secondary",
+                  style: { flex: 1, height: "46px" },
+                  children: "Back to Editing"
+                }),
+                o.jsxs("button", {
+                  type: "button",
+                  disabled: isSubmitting,
+                  onClick: handleExecuteDispatch,
+                  className: "btn btn-primary",
+                  style: { flex: 2, height: "46px", background: "linear-gradient(135deg, #ef4444, #dc2626)", border: "none" },
+                  children: [
+                    o.jsx(Vp, { size: 18 }),
+                    o.jsx("span", { children: isSubmitting ? "Committing to Supabase..." : "Confirm & Commit to Unified Ledger" })
+                  ]
+                })
+              ]
+            })
+
+          ]
+        })
+      })
+    ]
+  });
+},w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a}=Vt(),c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r}=Vt(),[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px",flexShrink:0},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",justifyContent:"flex-end",marginTop:"16px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})})]})},k1=()=>{
+  var T,N;
+  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u} = Vt();
+  const [d, f] = B.useState("finished_goods");
+  const [m, g] = B.useState("");
+  const [_, x] = B.useState("all");
+  const [selectedCategory, setSelectedCategory] = B.useState("all");
+  const [b, w] = B.useState("all");
+  const [E, j] = B.useState("");
+  const [k, A] = B.useState("");
+  const [datePreset, setDatePreset] = B.useState("all");
+  const [showAllProductBreakdown, setShowAllProductBreakdown] = B.useState(false);
+  const [L, W] = B.useState(!1);
+  const [H, ne] = B.useState("dispatch_out");
+  const [Y, ae] = B.useState(((T = t[0]) == null ? void 0 : T.id) || "");
+  const [fe, xe] = B.useState("Standard");
+  const [Ie, Be] = B.useState("");
+  const [M, ee] = B.useState("");
+  const [le, he] = B.useState(null);
+
+  const formatMoney = B.useCallback((n) => Math.round(Number(n) || 0).toLocaleString(), []);
+  const formatCement = B.useCallback((c) => (c % 1 === 0 ? c : Number(c.toFixed(1))), []);
+
+  const Pe = B.useMemo(() => {
+    const S = new Map();
+    for (const D of t) S.set(D.id, D);
+    return S;
+  }, [t]);
+
+  const oe = B.useMemo(() => {
+    const S = new Map();
+    for (const D of u) S.set(D.key, D);
+    return S;
+  }, [u]);
+
+  const G = Pe.get(Y);
+
+  // Available categories derived dynamically from items
+  const categories = B.useMemo(() => {
+    const set = new Set();
+    for (const item of t) {
+      if (item.category) set.add(item.category);
+    }
+    return ["all", ...Array.from(set)];
+  }, [t]);
+
+  // Products filtered by selected category
+  const visibleProducts = B.useMemo(() => {
+    if (selectedCategory === "all") return t;
+    return t.filter(it => it.category === selectedCategory);
+  }, [t, selectedCategory]);
+
+  // Date range presets helper for weekly / monthly / custom determinations
+  const applyDatePreset = B.useCallback((preset) => {
+    setDatePreset(preset);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const toYMD = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+
+    if (preset === "all") {
+      j("");
+      A("");
+    } else if (preset === "today") {
+      const td = toYMD(now);
+      j(td);
+      A(td);
+    } else if (preset === "this_week") {
+      const past7 = new Date(now);
+      past7.setDate(past7.getDate() - 6);
+      j(toYMD(past7));
+      A(toYMD(now));
+    } else if (preset === "this_month") {
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      j(toYMD(firstOfMonth));
+      A(toYMD(now));
+    } else if (preset === "last_month") {
+      const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      j(toYMD(firstOfLastMonth));
+      A(toYMD(lastOfLastMonth));
+    }
+  }, []);
+
+  // Filtered finished goods movements
+  const ue = B.useMemo(() => s.filter(S => {
+    if (_ !== "all" && S.type !== _) return !1;
+    if (selectedCategory !== "all") {
+      const it = Pe.get(S.item_id);
+      if (!it || it.category !== selectedCategory) return !1;
+    }
+    if (b !== "all" && S.item_id !== b) return !1;
+    if (E && S.date < E) return !1;
+    if (k && S.date > k) return !1;
+    if (m.trim()) {
+      const D = Pe.get(S.item_id),
+            F = D ? D.name.toLowerCase() : "",
+            Z = (S.note || "").toLowerCase(),
+            se = (S.entered_by || "").toLowerCase(),
+            we = m.toLowerCase();
+      if (!F.includes(we) && !Z.includes(we) && !se.includes(we)) return !1;
+    }
+    return !0;
+  }), [s, _, selectedCategory, b, E, k, m, Pe]);
+
+  // Filtered raw materials movements
+  const P = B.useMemo(() => c.filter(S => {
+    if (E && S.date < E || k && S.date > k) return !1;
+    if (m.trim()) {
+      const D = oe.get(S.materialKey),
+            F = D ? (D.name + " " + D.nameSwahili).toLowerCase() : "",
+            Z = (S.note || "").toLowerCase(),
+            se = (S.enteredBy || "").toLowerCase(),
+            we = m.toLowerCase();
+      if (!F.includes(we) && !Z.includes(we) && !se.includes(we)) return !1;
+    }
+    return !0;
+  }), [c, E, k, m, oe]);
+
+  // Domain determination summary:
+  // - Never count different products as one
+  // - Production: Cement amount used (bags) is primary metric
+  // - Sales: Total revenue amount (TSh) is primary metric
+  // - In product qty lines: show how much cement was used to produce that qty
+  const summary = B.useMemo(() => {
+    const byProduct = new Map();
+    const seenBatches = new Set();
+    let totalCementBags = 0;
+    let totalSalesAmount = 0;
+    let prodBatchesCount = 0;
+    let salesDispatchesCount = 0;
+
+    for (const mov of ue) {
+      const item = Pe.get(mov.item_id);
+      const prodId = mov.item_id || "unknown";
+      if (!byProduct.has(prodId)) {
+        byProduct.set(prodId, {
+          id: prodId,
+          name: item ? item.name : (mov.item_id || "Unknown Product"),
+          category: item ? item.category : "",
+          unit: item ? item.unit : "pcs",
+          prodPcs: 0,
+          prodSqm: 0,
+          prodCement: 0,
+          salesPcs: 0,
+          salesSqm: 0,
+          salesAmount: 0
+        });
+      }
+      const stat = byProduct.get(prodId);
+      const pcs = Number(mov.quantity_pcs) || 0;
+      const sqm = Number(mov.quantity_sqm) ? Math.abs(Number(mov.quantity_sqm)) : 0;
+
+      if (mov.type === "production_in") {
+        stat.prodPcs += pcs;
+        stat.prodSqm += sqm;
+
+        let cementThisMov = Number(mov.actual_cement_bags) || 
+                            Number(mov.computed_materials_deducted && mov.computed_materials_deducted.cementBags) || 
+                            0;
+        if (!cementThisMov && item && item.wastani_per_bag && pcs > 0) {
+          cementThisMov = pcs / item.wastani_per_bag;
+        }
+
+        const batchKey = mov.batch_id || mov.id;
+        if (!seenBatches.has(batchKey)) {
+          seenBatches.add(batchKey);
+          totalCementBags += (Number(mov.actual_cement_bags) || Number(mov.computed_materials_deducted?.cementBags) || cementThisMov);
+          prodBatchesCount++;
+        }
+        stat.prodCement += cementThisMov;
+      } else if (mov.type === "dispatch_out") {
+        stat.salesPcs += pcs;
+        stat.salesSqm += sqm;
+        salesDispatchesCount++;
+
+        let amt = Number(mov.total_price) || Number(mov.total_amount) || 0;
+        if (!amt && Number(mov.price_per_unit)) {
+          const q = (item && item.unit === "sqm" && sqm) ? sqm : pcs;
+          amt = Number(mov.price_per_unit) * q;
+        }
+        stat.salesAmount += amt;
+        totalSalesAmount += amt;
+      }
+    }
+
+    const productsList = Array.from(byProduct.values()).filter(p => p.prodPcs > 0 || p.salesPcs > 0);
+    productsList.forEach(p => {
+      p.prodCement = Number(p.prodCement.toFixed(1));
+    });
+
+    return {
+      totalCementBags: Number(totalCementBags.toFixed(1)),
+      totalSalesAmount,
+      prodBatchesCount,
+      salesDispatchesCount,
+      productsList,
+      uniqueProductsCount: productsList.length
+    };
+  }, [ue, Pe]);
+
+  const y = async S => {
+    S.preventDefault();
+    const D = parseFloat(Ie);
+    if (isNaN(D) || D <= 0) return;
+    const F = Pe.get(Y);
+    if (!F) return;
+    const Z = fe === "Standard" ? null : fe;
+    let se = null;
+    F.unit === "sqm" && F.pcs_per_sqm && F.pcs_per_sqm > 0 && (se = Number((D / F.pcs_per_sqm).toFixed(2)));
+    let we = F.unit === "sqm" && se !== null ? se : D;
+    H === "dispatch_out" && (we = -Math.abs(we));
+    (await r({
+      item_id: F.id,
+      type: H,
+      color: Z,
+      quantity_pcs: D,
+      quantity_sqm: se,
+      delta: we,
+      date: new Date().toISOString().split("T")[0],
+      note: M || (H === "dispatch_out" ? "Manual Dispatch" : "Manual Adjustment")
+    })) && (W(!1), Be(""), ee(""));
+  };
+
+  const O = S => {
+    switch (S) {
+      case "production_in":
+        return o.jsxs("span", { className: "badge badge-success", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Gv, { size: 12 }), " Production"] });
+      case "opening_balance":
+        return o.jsxs("span", { className: "badge badge-info", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(mc, { size: 12 }), " Baseline"] });
+      case "dispatch_out":
+        return o.jsxs("span", { className: "badge badge-danger", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Vp, { size: 12 }), " Dispatch"] });
+      case "adjustment":
+        return o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Sc, { size: 12 }), " Adjustment"] });
+    }
+  };
+
+  const z = S => !S || S === "unspecified" ? null : S === "optimal" ? o.jsxs("span", { className: "badge badge-success", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(Qp, { size: 11 }), " QC Optimal"] }) : S === "lean_warning" ? o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(Kx, { size: 11 }), " QC Lean Alert"] }) : S === "rich_notice" ? o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(jx, { size: 11 }), " QC Rich Mix"] }) : null;
+
+  return o.jsxs("div", {
+    style: { display: "flex", flexDirection: "column", gap: "12px" },
+    children: [
+      // Top Header
+      o.jsxs("div", {
+        style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" },
+        children: [
+          o.jsxs("div", {
+            children: [
+              o.jsx("h1", { style: { fontSize: "19px", fontWeight: 800 }, children: "Append-Only Ledger Log" }),
+              o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Immutable history of finished goods movements & raw material auto-deductions" })
+            ]
+          }),
+          o.jsxs("button", {
+            onClick: () => W(!0),
+            className: "btn btn-secondary btn-sm",
+            style: { gap: "4px" },
+            children: [
+              o.jsx(vr, { size: 14, color: "var(--brand-400)" }),
+              o.jsx("span", { children: "Dispatch / Adjust" })
+            ]
+          })
+        ]
+      }),
+
+      // Main Finished Goods vs Raw Materials Tabs
+      o.jsxs("div", {
+        style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "var(--bg-surface-elevated)", padding: "3px", borderRadius: "8px", border: "1px solid var(--border-subtle)" },
+        children: [
+          o.jsxs("button", {
+            type: "button",
+            onClick: () => f("finished_goods"),
+            style: { padding: "6px 8px", borderRadius: "6px", border: "none", fontSize: "12px", fontWeight: 700, background: d === "finished_goods" ? "var(--brand-500)" : "transparent", color: d === "finished_goods" ? "#fff" : "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" },
+            children: [
+              o.jsx(si, { size: 13 }),
+              o.jsxs("span", { children: ["Finished Goods (", s.length, ")"] })
+            ]
+          }),
+          o.jsxs("button", {
+            type: "button",
+            onClick: () => f("raw_materials"),
+            style: { padding: "6px 8px", borderRadius: "6px", border: "none", fontSize: "12px", fontWeight: 700, background: d === "raw_materials" ? "var(--brand-500)" : "transparent", color: d === "raw_materials" ? "#fff" : "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" },
+            children: [
+              o.jsx(pc, { size: 13 }),
+              o.jsxs("span", { children: ["Raw Materials (", c.length, ")"] })
+            ]
+          })
+        ]
+      }),
+
+      // Unified Filter Card
+      o.jsxs("div", {
+        className: "card",
+        style: { padding: "10px 12px", display: "flex", flexDirection: "column", gap: "9px" },
+        children: [
+          // Row 1: Search Box
+          o.jsxs("div", {
+            className: "search-wrapper",
+            children: [
+              o.jsx(ii, { className: "search-icon", size: 15 }),
+              o.jsx("input", {
+                type: "text",
+                className: "input-field search-input",
+                style: { height: "34px", minHeight: "34px", fontSize: "12.5px" },
+                placeholder: "Search product, operator, notes...",
+                value: m,
+                onChange: S => g(S.target.value)
+              }),
+              m && o.jsx("button", { className: "search-clear", onClick: () => g(""), children: "✕" })
+            ]
+          }),
+
+          // Row 2: Same row - Movement type tabs on left, Timeframe dropdown on top right end
+          o.jsxs("div", {
+            style: {
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+              flexWrap: "wrap"
+            },
+            children: [
+              // Left: Movement Type Filter Tabs (Finished Goods)
+              d === "finished_goods" ? o.jsx("div", {
+                className: "filter-tabs",
+                style: { gap: "4px", margin: 0 },
+                children: [
+                  { id: "all", label: "All" },
+                  { id: "production_in", label: "Production (+)" },
+                  { id: "opening_balance", label: "Opening" },
+                  { id: "dispatch_out", label: "Dispatch (-)" },
+                  { id: "adjustment", label: "Adjustment" }
+                ].map(S => o.jsx("button", {
+                  onClick: () => x(S.id),
+                  className: `filter-tab ${_ === S.id ? "active" : ""}`,
+                  style: { fontSize: "11px", padding: "4px 8px" },
+                  children: S.label
+                }, S.id))
+              }) : o.jsx("span", { style: { fontSize: "11.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: "Filter Raw Materials:" }),
+
+              // Right End: Timeframe Filter Dropdown (Same Row!)
+              o.jsxs("div", {
+                style: { display: "flex", alignItems: "center", gap: "5px", marginLeft: "auto" },
+                children: [
+                  o.jsx(ni, { size: 13, color: "var(--brand-400)" }),
+                  o.jsxs("select", {
+                    className: "input-field",
+                    style: {
+                      height: "30px",
+                      minHeight: "30px",
+                      fontSize: "11.5px",
+                      padding: "2px 8px",
+                      background: datePreset !== "all" ? "var(--brand-500)" : "var(--bg-input)",
+                      color: datePreset !== "all" ? "#ffffff" : "var(--text-secondary)",
+                      borderColor: datePreset !== "all" ? "var(--brand-400)" : "var(--border-subtle)",
+                      fontWeight: datePreset !== "all" ? 700 : 500,
+                      borderRadius: "6px",
+                      cursor: "pointer"
+                    },
+                    value: datePreset,
+                    onChange: (e) => applyDatePreset(e.target.value),
+                    children: [
+                      o.jsx("option", { value: "all", children: "All Time" }),
+                      o.jsx("option", { value: "today", children: "Today" }),
+                      o.jsx("option", { value: "this_week", children: "This Week" }),
+                      o.jsx("option", { value: "this_month", children: "This Month" }),
+                      o.jsx("option", { value: "last_month", children: "Last Month" }),
+                      o.jsx("option", { value: "custom", children: "Custom Dates..." })
+                    ]
+                  }),
+                  datePreset !== "all" && o.jsx("button", {
+                    type: "button",
+                    onClick: () => applyDatePreset("all"),
+                    className: "btn btn-ghost btn-sm",
+                    style: { fontSize: "10.5px", padding: "1px 5px", height: "22px", minHeight: "22px", color: "var(--text-muted)" },
+                    title: "Clear date filter",
+                    children: "✕"
+                  })
+                ]
+              })
+            ]
+          }),
+
+          // Row 3: Product Category and Specific Product Dropdowns
+          d === "finished_goods" && o.jsxs("div", {
+            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
+            children: [
+              o.jsxs("select", {
+                className: "input-field",
+                style: { width: "100%", height: "34px", minHeight: "34px", fontSize: "12px", padding: "4px 8px" },
+                value: selectedCategory,
+                onChange: (e) => {
+                  const newCat = e.target.value;
+                  setSelectedCategory(newCat);
+                  if (newCat !== "all" && b !== "all") {
+                    const cur = Pe.get(b);
+                    if (cur && cur.category !== newCat) w("all");
+                  }
+                },
+                children: [
+                  o.jsx("option", { value: "all", children: "All Categories" }),
+                  categories.filter(cat => cat !== "all").map(cat => o.jsx("option", { value: cat, children: cat }, cat))
+                ]
+              }),
+
+              o.jsxs("select", {
+                className: "input-field",
+                style: { width: "100%", height: "34px", minHeight: "34px", fontSize: "12px", padding: "4px 8px" },
+                value: b,
+                onChange: S => w(S.target.value),
+                children: [
+                  o.jsxs("option", { value: "all", children: ["All Products (", visibleProducts.length, ")"] }),
+                  visibleProducts.map(S => o.jsxs("option", { value: S.id, children: [S.name, selectedCategory === "all" ? " (" + S.category + ")" : ""] }, S.id))
+                ]
+              })
+            ]
+          }),
+
+          // Row 4: TAKES THE POSITION OF THE PREVIOUS TIMEFRAMES FILTER:
+          // Production summary (total cement used) & Sales summary (total sales amount)
+          // Also shows how much cement was used to produce that certain product quantity!
+          d === "finished_goods" && o.jsxs("div", {
+            style: {
+              borderTop: "1px solid var(--border-subtle)",
+              paddingTop: "7px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "5px"
+            },
+            children: [
+              o.jsxs("div", {
+                style: {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  padding: "6px 10px",
+                  borderRadius: "6px"
+                },
+                children: [
+                  // Production Summary: Total Cement Used (Universal cross-product production metric)
+                  o.jsxs("div", {
+                    style: { display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" },
+                    children: [
+                      o.jsx(Gv, { size: 14, color: "var(--status-success)" }),
+                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Cement Used:" }),
+                      o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
+                        summary.totalCementBags, " bags"
+                      ]}),
+                      // If single product is selected: show its specific pieces, sqm AND cement used for that qty!
+                      summary.uniqueProductsCount === 1 && summary.productsList[0] && summary.productsList[0].prodPcs > 0 && o.jsxs("span", {
+                        style: { fontSize: "11px", color: "var(--brand-400)", fontFamily: "var(--font-mono)" },
+                        children: [
+                          "(+", summary.productsList[0].prodPcs.toLocaleString(), " pcs",
+                          summary.productsList[0].prodSqm > 0 ? " · " + summary.productsList[0].prodSqm + " m²" : "",
+                          summary.productsList[0].prodCement > 0 ? " · " + formatCement(summary.productsList[0].prodCement) + " bags cem" : "",
+                          ")"
+                        ]
+                      })
+                    ]
+                  }),
+
+                  o.jsx("span", { style: { color: "var(--border-subtle)", opacity: 0.6 }, children: "│" }),
+
+                  // Sales Summary: Total Sales Amount (Universal cross-product sales metric)
+                  o.jsxs("div", {
+                    style: { display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" },
+                    children: [
+                      o.jsx(Vp, { size: 14, color: "#f87171" }),
+                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Total Sales:" }),
+                      o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
+                        "Tsh ", formatMoney(summary.totalSalesAmount)
+                      ]}),
+                      // If single product is selected, show its specific pieces & sqm
+                      summary.uniqueProductsCount === 1 && summary.productsList[0] && summary.productsList[0].salesPcs > 0 && o.jsxs("span", {
+                        style: { fontSize: "11px", color: "#f87171", fontFamily: "var(--font-mono)" },
+                        children: [
+                          "(-", summary.productsList[0].salesPcs.toLocaleString(), " pcs",
+                          summary.productsList[0].salesSqm > 0 ? " · " + summary.productsList[0].salesSqm + " m²" : "",
+                          ")"
+                        ]
+                      })
+                    ]
+                  }),
+
+                  // Per-product breakdown toggle (if multiple products exist)
+                  summary.uniqueProductsCount > 1 && o.jsx("button", {
+                    type: "button",
+                    onClick: () => setShowAllProductBreakdown(!showAllProductBreakdown),
+                    className: "btn btn-ghost btn-sm",
+                    style: { fontSize: "10.5px", padding: "1px 6px", height: "20px", minHeight: "20px", color: "var(--brand-400)" },
+                    children: showAllProductBreakdown ? "▲ Hide Items" : `▼ Items (${summary.uniqueProductsCount})`
+                  })
+                ]
+              }),
+
+              // Per-Product Separate Quantities Breakdown:
+              // For each product qty line, CEMENT USED for that qty is explicitly shown!
+              summary.uniqueProductsCount > 1 && showAllProductBreakdown && o.jsx("div", {
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  padding: "4px 2px"
+                },
+                children: summary.productsList.map(p => o.jsxs("div", {
+                  key: p.id,
+                  style: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    fontSize: "11.5px",
+                    background: "rgba(255,255,255,0.02)",
+                    padding: "4px 8px",
+                    borderRadius: "4px"
+                  },
+                  children: [
+                    o.jsx("span", { style: { fontWeight: 600, color: "#f8fafc", maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: p.name }),
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "8px", fontFamily: "var(--font-mono)", fontSize: "11px", flexWrap: "wrap", justifyContent: "flex-end" },
+                      children: [
+                        // Production line for this certain product with its exact qty AND cement used!
+                        p.prodPcs > 0 && o.jsxs("span", { style: { color: "var(--status-success)" }, children: [
+                          "+", p.prodPcs.toLocaleString(), " pcs",
+                          p.prodSqm > 0 ? " (" + p.prodSqm + " m²)" : "",
+                          p.prodCement > 0 ? " [" + formatCement(p.prodCement) + " bags cem]" : ""
+                        ]}),
+                        // Sales line for this certain product
+                        p.salesPcs > 0 && o.jsxs("span", { style: { color: "#f87171" }, children: [
+                          "-", p.salesPcs.toLocaleString(), " pcs",
+                          p.salesSqm > 0 ? " (" + p.salesSqm + " m²)" : ""
+                        ]}),
+                        // Revenue for this certain product
+                        p.salesAmount > 0 && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: [
+                          "Tsh ", formatMoney(p.salesAmount)
+                        ]})
+                      ]
+                    })
+                  ]
+                }))
+              })
+            ]
+          }),
+
+          // Row 5: Custom Date Inputs (only appears when Custom Dates is selected)
+          (datePreset === "custom") && o.jsxs("div", {
+            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", paddingTop: "5px", borderTop: "1px dashed var(--border-subtle)" },
+            children: [
+              o.jsxs("div", {
+                children: [
+                  o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "1px" }, children: "From Date:" }),
+                  o.jsx("input", {
+                    type: "date",
+                    className: "input-field mono",
+                    style: { height: "30px", minHeight: "30px", fontSize: "11.5px", width: "100%", padding: "2px 6px" },
+                    value: E,
+                    onChange: S => j(S.target.value)
+                  })
+                ]
+              }),
+              o.jsxs("div", {
+                children: [
+                  o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "1px" }, children: "To Date:" }),
+                  o.jsx("input", {
+                    type: "date",
+                    className: "input-field mono",
+                    style: { height: "30px", minHeight: "30px", fontSize: "11.5px", width: "100%", padding: "2px 6px" },
+                    value: k,
+                    onChange: S => A(S.target.value)
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+
+      // Finished Goods Movement List
+      d === "finished_goods" && o.jsxs("div", {
+        style: { display: "flex", flexDirection: "column", gap: "8px" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" },
+            children: [
+              o.jsxs("span", { style: { fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: ["Recorded Movements (", ue.length, ")"] }),
+              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Latest first" })
+            ]
+          }),
+          ue.length === 0 ? o.jsxs("div", {
+            className: "card",
+            style: { textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" },
+            children: [
+              o.jsx(mc, { size: 32, style: { margin: "0 auto 8px auto", opacity: .5 } }),
+              o.jsx("div", { style: { fontSize: "14.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: "No movements found" }),
+              o.jsx("div", { style: { fontSize: "12px", marginTop: "4px" }, children: "Logged production or opening balance entries will appear here." })
+            ]
+          }) : ue.map(S => {
+            const D = Pe.get(S.item_id),
+                  F = S.delta >= 0;
+            return o.jsxs("div", {
+              onClick: () => he(S),
+              className: "card",
+              style: { padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", cursor: "pointer", borderColor: S.qc_status === "lean_warning" ? "rgba(245, 158, 11, 0.4)" : void 0 },
+              children: [
+                o.jsxs("div", {
+                  style: { flex: 1, minWidth: 0 },
+                  children: [
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" },
+                      children: [
+                        O(S.type),
+                        o.jsx("span", { style: { fontSize: "14.5px", fontWeight: 700, color: "#f8fafc" }, children: D ? D.name : "Unknown Product" }),
+                        S.color && o.jsx(xr, { color: S.color, size: "sm", showCount: !1 }),
+                        z(S.qc_status)
+                      ]
+                    }),
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "10px", fontSize: "11.5px", color: "var(--text-muted)", flexWrap: "wrap" },
+                      children: [
+                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "3px" }, children: [o.jsx(ni, { size: 12 }), " ", S.date] }),
+                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "3px" }, children: [o.jsx(Da, { size: 12 }), " ", S.entered_by] }),
+                        S.computed_materials_deducted && o.jsxs("span", { style: { color: "var(--brand-400)" }, children: ["⚡ ", S.computed_materials_deducted.cementBags, " bags Cem"] }),
+                        S.note && o.jsxs("span", { style: { color: "var(--text-secondary)", maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: ['"', S.note, '"'] })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { textAlign: "right", flexShrink: 0 },
+                  children: [
+                    o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: F ? "#34d399" : "#f87171" }, children: [F ? "+" : "", S.quantity_pcs, " pcs"] }),
+                    S.quantity_sqm !== null && o.jsxs("div", { style: { fontSize: "12px", color: "var(--brand-400)", fontWeight: 600 }, children: [F ? "+" : "-", Math.abs(S.quantity_sqm), " sqm"] })
+                  ]
+                })
+              ]
+            }, S.id);
+          })
+        ]
+      }),
+
+      // Raw Materials List
+      d === "raw_materials" && o.jsxs("div", {
+        style: { display: "flex", flexDirection: "column", gap: "8px" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" },
+            children: [
+              o.jsxs("span", { style: { fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: ["Raw Material Ledger Logs (", P.length, ")"] }),
+              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Production deductions & restocks" })
+            ]
+          }),
+          P.length === 0 ? o.jsxs("div", {
+            className: "card",
+            style: { textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" },
+            children: [
+              o.jsx(pc, { size: 32, style: { margin: "0 auto 8px auto", opacity: .5 } }),
+              o.jsx("div", { style: { fontSize: "14.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: "No raw material logs yet" }),
+              o.jsx("div", { style: { fontSize: "12px", marginTop: "4px" }, children: "Deductions will be automatically recorded when you log finished goods production." })
+            ]
+          }) : P.map(S => {
+            const D = oe.get(S.materialKey),
+                  F = S.delta >= 0;
+            return o.jsxs("div", {
+              className: "card",
+              style: { padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" },
+              children: [
+                o.jsxs("div", {
+                  children: [
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" },
+                      children: [
+                        o.jsx("span", { className: `badge ${F ? "badge-success" : "badge-neutral"}`, style: { fontSize: "10.5px" }, children: F ? "+ Restock Intake" : "- Auto Recipe Deduction" }),
+                        o.jsx("strong", { style: { fontSize: "14px", color: "#f8fafc" }, children: D ? D.name : S.materialKey })
+                      ]
+                    }),
+                    o.jsxs("div", {
+                      style: { fontSize: "11.5px", color: "var(--text-muted)", display: "flex", gap: "8px" },
+                      children: [
+                        o.jsxs("span", { children: [o.jsx(ni, { size: 11, style: { verticalAlign: "middle" } }), " ", S.date] }),
+                        o.jsxs("span", { children: ["By: ", S.enteredBy] }),
+                        S.note && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: ['"', S.note, '"'] })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsx("div", {
+                  style: { textAlign: "right" },
+                  children: o.jsxs("span", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: F ? "#34d399" : "#f87171" }, children: [F ? "+" : "", S.delta, " ", S.unit] })
+                })
+              ]
+            }, S.id);
+          })
+        ]
+      }),
+
+      // Movement Details Modal
+      le && o.jsx("div", {
+        className: "modal-overlay",
+        onClick: () => he(null),
+        children: o.jsxs("div", {
+          className: "modal-content",
+          onClick: S => S.stopPropagation(),
+          style: { padding: "22px" },
+          children: [
+            o.jsxs("div", {
+              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
+              children: [
+                o.jsxs("div", {
+                  style: { display: "flex", alignItems: "center", gap: "8px" },
+                  children: [
+                    o.jsx(xx, { size: 20, color: "var(--brand-400)" }),
+                    o.jsx("h3", { style: { fontSize: "17px", fontWeight: 700 }, children: "Movement Ledger Record" })
+                  ]
+                }),
+                o.jsx("button", { onClick: () => he(null), className: "btn btn-ghost btn-sm", children: o.jsx(Yn, { size: 18 }) })
+              ]
+            }),
+            o.jsxs("div", {
+              style: { display: "flex", flexDirection: "column", gap: "10px" },
+              children: [
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Type" }),
+                    o.jsxs("div", { style: { display: "flex", gap: "6px" }, children: [O(le.type), z(le.qc_status)] })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Product" }),
+                    o.jsx("span", { style: { fontWeight: 700 }, children: ((N = Pe.get(le.item_id)) == null ? void 0 : N.name) || le.item_id })
+                  ]
+                }),
+                le.color && o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Color" }),
+                    o.jsx(xr, { color: le.color, size: "sm", showCount: !1 })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Quantity in Pieces" }),
+                    o.jsxs("span", { style: { fontWeight: 700, fontFamily: "var(--font-mono)" }, children: [le.quantity_pcs, " pcs"] })
+                  ]
+                }),
+                le.quantity_sqm !== null && o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Quantity in Sqm" }),
+                    o.jsxs("span", { style: { fontWeight: 700, color: "var(--brand-400)", fontFamily: "var(--font-mono)" }, children: [le.quantity_sqm, " sqm"] })
+                  ]
+                }),
+                le.computed_materials_deducted && o.jsxs("div", {
+                  style: { padding: "10px", background: "var(--bg-input)", borderRadius: "8px", marginTop: "6px" },
+                  children: [
+                    o.jsx("div", { style: { fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "var(--brand-400)" }, children: "⚡ Auto-Deducted Raw Materials:" }),
+                    o.jsxs("div", {
+                      style: { fontSize: "12px", color: "var(--text-secondary)" },
+                      children: [
+                        "• Cement: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.cementBags, " bags"] }),
+                        " (50kg)",
+                        o.jsx("br", {}),
+                        "• Sand: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.sandBuckets, " buckets"] }),
+                        o.jsx("br", {}),
+                        "• Chipping: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.chippingBuckets, " buckets"] }),
+                        le.computed_materials_deducted.chemicalLiters > 0 && o.jsxs("div", { children: ["• Dawa: ", o.jsxs("strong", { children: [le.computed_materials_deducted.chemicalLiters, " L"] })] }),
+                        le.computed_materials_deducted.pigmentRedKg > 0 && o.jsxs("div", { children: ["• Red Pigment: ", o.jsxs("strong", { children: [le.computed_materials_deducted.pigmentRedKg, " kg"] })] })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Entered By" }),
+                    o.jsx("span", { style: { fontWeight: 600 }, children: le.entered_by })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Date & Timestamp" }),
+                    o.jsxs("span", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: [le.date, " (", le.created_at ? new Date(le.created_at).toLocaleTimeString() : "N/A", ")"] })
+                  ]
+                })
+              ]
+            }),
+            o.jsx("div", {
+              style: { marginTop: "18px", textAlign: "right" },
+              children: o.jsx("button", { type: "button", onClick: () => he(null), className: "btn btn-secondary", style: { width: "100%" }, children: "Close Details" })
+            })
+          ]
+        })
+      }),
+
+      // Log Dispatch or Adjustment Modal
+      L && o.jsx("div", {
+        className: "modal-overlay",
+        onClick: () => W(!1),
+        children: o.jsxs("div", {
+          className: "modal-content",
+          onClick: S => S.stopPropagation(),
+          style: { padding: "22px" },
+          children: [
+            o.jsxs("div", {
+              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
+              children: [
+                o.jsx("h3", { style: { fontSize: "18px", fontWeight: 700 }, children: "Log Dispatch or Stock Adjustment" }),
+                o.jsx("button", { onClick: () => W(!1), className: "btn btn-ghost btn-sm", children: o.jsx(Yn, { size: 18 }) })
+              ]
+            }),
+            o.jsxs("form", {
+              onSubmit: y,
+              children: [
+                o.jsxs("div", {
+                  className: "input-group",
+                  children: [
+                    o.jsx("label", { className: "input-label", children: "Movement Type" }),
+                    o.jsxs("div", {
+                      style: { display: "flex", gap: "8px" },
+                      children: [
+                        o.jsx("button", { type: "button", onClick: () => ne("dispatch_out"), className: `btn ${H === "dispatch_out" ? "btn-primary" : "btn-secondary"}`, style: { flex: 1, background: H === "dispatch_out" ? "var(--status-danger)" : void 0 }, children: "Dispatch Out (-)" }),
+                        o.jsx("button", { type: "button", onClick: () => ne("adjustment"), className: `btn ${H === "adjustment" ? "btn-primary" : "btn-secondary"}`, style: { flex: 1 }, children: "Adjustment (±)" })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  className: "input-group",
+                  children: [
+                    o.jsx("label", { className: "input-label", children: "Product" }),
+                    o.jsx("select", {
+                      value: Y,
+                      onChange: S => ae(S.target.value),
+                      className: "input-field",
+                      children: t.map(S => o.jsxs("option", { value: S.id, children: [S.name, " (", S.category, ")"] }, S.id))
+                    })
+                  ]
+                }),
+                (G == null ? void 0 : G.colors) && G.colors.length > 0 && o.jsxs("div", {
+                  className: "input-group",
+                  children: [
+                    o.jsx("label", { className: "input-label", children: "Color Variant" }),
+                    o.jsx("select", {
+                      value: fe,
+                      onChange: S => xe(S.target.value),
+                      className: "input-field",
+                      children: G.colors.map(S => o.jsx("option", { value: S, children: S }, S))
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  className: "input-group",
+                  children: [
+                    o.jsx("label", { className: "input-label", children: "Quantity in Pieces (pcs)" }),
+                    o.jsx("input", { type: "number", min: "1", step: "1", required: !0, value: Ie, onChange: S => Be(S.target.value), className: "input-field mono", placeholder: "e.g. 50" })
+                  ]
+                }),
+                o.jsxs("div", {
+                  className: "input-group",
+                  children: [
+                    o.jsx("label", { className: "input-label", children: "Note / Customer / Reason" }),
+                    o.jsx("input", { type: "text", value: M, onChange: S => ee(S.target.value), className: "input-field", placeholder: "e.g. Dispatched to Site B, truck T123 ABC..." })
+                  ]
+                }),
+                o.jsx("button", { type: "submit", className: "btn btn-primary btn-lg", style: { width: "100%", marginTop: "8px" }, children: "Save Ledger Movement" })
+              ]
+            })
+          ]
+        })
+      })
+    ]
+  });
+},C1=()=>{const{isUnlocked:s}=Vt(),[t,r]=B.useState("dashboard"),[a,c]=B.useState(void 0),[u,d]=B.useState(!1);if(!s)return o.jsx(l1,{});const f=(m,g)=>{r(m),c(g)};return o.jsxs("div",{className:"app-layout",children:[o.jsx(a1,{onOpenAi:()=>d(!0)}),o.jsxs("main",{className:"main-content",children:[t==="dashboard"&&o.jsx(x1,{onNavigate:f}),t==="production"&&o.jsx(_1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="sales"&&o.jsx(b1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="opening_balance"&&o.jsx(w1,{}),t==="items"&&o.jsx(S1,{}),t==="history"&&o.jsx(k1,{})]}),o.jsx("button",{type:"button",onClick:()=>d(!0),style:{position:"fixed",right:"16px",bottom:"calc(var(--nav-bottom-height) + 16px)",zIndex:45,width:"48px",height:"48px",borderRadius:"50%",background:"linear-gradient(135deg, #f97316, #9333ea)",border:"2px solid rgba(255, 255, 255, 0.2)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px rgba(249, 115, 22, 0.5), 0 0 15px rgba(147, 51, 234, 0.4)",cursor:"pointer",transition:"transform 0.15s ease"},title:"Ask STUMARCOT AI Agent",children:o.jsx(kc,{size:22,color:"#fff"})}),o.jsx(v1,{isOpen:u,onClose:()=>d(!1)}),o.jsx(o1,{currentTab:t,onTabChange:r})]})},j1=()=>o.jsx(Bv,{children:o.jsx(C1,{})});ig.createRoot(document.getElementById("root")).render(o.jsx(Xm.StrictMode,{children:o.jsx(j1,{})}));

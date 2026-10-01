@@ -1,0 +1,570 @@
+{
+  "description": {
+    "name": "DESCRIPTION",
+    "category": "",
+    "unitPrice": 0,
+    "sqmPrice": 0,
+    "pcsPerSqm": null,
+    "size": "SIZE"
+  },
+  "rectangular (30-35mpa)": {
+    "name": "RECTANGULAR (30-35MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 630,
+    "sqmPrice": 31500,
+    "pcsPerSqm": 50,
+    "size": "200*100*80mm"
+  },
+  "rectangular (40-45 mpa)": {
+    "name": "RECTANGULAR (40-45 Mpa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 700,
+    "sqmPrice": 35000,
+    "pcsPerSqm": 50,
+    "size": "200*100*80mm"
+  },
+  "rectangular  (30mpa)": {
+    "name": "RECTANGULAR  (30MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 517,
+    "sqmPrice": 25830,
+    "pcsPerSqm": 50,
+    "size": "200*100*60mm"
+  },
+  "zigzag (30-35mpa)": {
+    "name": "ZIGZAG (30-35MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 656,
+    "sqmPrice": 31500,
+    "pcsPerSqm": 48,
+    "size": "210*100*80mm"
+  },
+  "zigzag (40-45mpa)": {
+    "name": "ZIGZAG (40-45MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 729,
+    "sqmPrice": 35000,
+    "pcsPerSqm": 48,
+    "size": "210*100*80mm"
+  },
+  "zigzag (30 mpa)": {
+    "name": "ZIGZAG (30 Mpa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 538,
+    "sqmPrice": 25830,
+    "pcsPerSqm": 48,
+    "size": "210*100*60mm"
+  },
+  "h paver (30-35mpa)": {
+    "name": "H PAVER (30-35MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 851,
+    "sqmPrice": 31500,
+    "pcsPerSqm": 37,
+    "size": "200*13.3*80mm"
+  },
+  "h paver (40-45mpa)": {
+    "name": "H PAVER (40-45MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 946,
+    "sqmPrice": 35000,
+    "pcsPerSqm": 37,
+    "size": "200*13.3*80mm"
+  },
+  "h paver (30 mpa)": {
+    "name": "H PAVER (30 Mpa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 698,
+    "sqmPrice": 25830,
+    "pcsPerSqm": 37,
+    "size": "200*13.3*60mm"
+  },
+  "worldcup (30mpa)": {
+    "name": "WORLDCUP (30MPa)",
+    "category": "PAVING BLOCKS (PRESS)",
+    "unitPrice": 783,
+    "sqmPrice": 25830,
+    "pcsPerSqm": 33,
+    "size": "250*13.5*60mm"
+  },
+  "u dot paver": {
+    "name": "U DOT PAVER",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 1475,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "20"
+  },
+  "z plain paver": {
+    "name": "Z PLAIN PAVER",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 983,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "30"
+  },
+  "trio": {
+    "name": "TRIO",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 1093,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "27"
+  },
+  "culture": {
+    "name": "CULTURE",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 1054,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "28"
+  },
+  "v paver": {
+    "name": "V PAVER",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 567,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "52"
+  },
+  "kisu": {
+    "name": "KISU",
+    "category": "PAVING BLOCKS (VIBRATION)",
+    "unitPrice": 738,
+    "sqmPrice": 29500,
+    "pcsPerSqm": null,
+    "size": "40"
+  },
+  "slab": {
+    "name": "SLAB",
+    "category": "FLOOR TILES",
+    "unitPrice": 16500,
+    "sqmPrice": 16500,
+    "pcsPerSqm": 1,
+    "size": "1100*500*30mm"
+  },
+  "combo": {
+    "name": "COMBO",
+    "category": "FLOOR TILES",
+    "unitPrice": 10833,
+    "sqmPrice": 32500,
+    "pcsPerSqm": 3,
+    "size": "800*400*30mm"
+  },
+  "mbao": {
+    "name": "MBAO",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "600*300*20mm"
+  },
+  "50plain": {
+    "name": "50PLAIN",
+    "category": "FLOOR TILES",
+    "unitPrice": 6375,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 4,
+    "size": "500*500*20mm"
+  },
+  "50 draft": {
+    "name": "50 DRAFT",
+    "category": "FLOOR TILES",
+    "unitPrice": 6375,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 4,
+    "size": "490*450*20mm"
+  },
+  "mayai": {
+    "name": "MAYAI",
+    "category": "FLOOR TILES",
+    "unitPrice": 6375,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 4,
+    "size": "490*460*20mm"
+  },
+  "40dot": {
+    "name": "40DOT",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40plain": {
+    "name": "40PLAIN",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40 mawingu": {
+    "name": "40 MAWINGU",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40 8gon": {
+    "name": "40 8GON",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "worldcup": {
+    "name": "WORLDCUP",
+    "category": "FLOOR TILES",
+    "unitPrice": 3188,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 8,
+    "size": "350*350*20mm"
+  },
+  "30 8gon": {
+    "name": "30 8GON",
+    "category": "FLOOR TILES",
+    "unitPrice": 2318,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 11,
+    "size": "300*300*20mm"
+  },
+  "draft": {
+    "name": "DRAFT",
+    "category": "FLOOR TILES",
+    "unitPrice": 2318,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 11,
+    "size": "300*300*20mm"
+  },
+  "draft 9": {
+    "name": "DRAFT 9",
+    "category": "FLOOR TILES",
+    "unitPrice": 2318,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 11,
+    "size": "300*300*20mm"
+  },
+  "chuchu": {
+    "name": "CHUCHU",
+    "category": "FLOOR TILES",
+    "unitPrice": 1594,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 16,
+    "size": "250*250*20mm"
+  },
+  "buibui": {
+    "name": "BUIBUI",
+    "category": "FLOOR TILES",
+    "unitPrice": 1594,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 16,
+    "size": "250*250*20mm"
+  },
+  "cloud": {
+    "name": "CLOUD",
+    "category": "WALL TILES",
+    "unitPrice": 2125,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 12,
+    "size": "400*200*10mm"
+  },
+  "banzi": {
+    "name": "BANZI",
+    "category": "WALL TILES",
+    "unitPrice": 1159,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 22,
+    "size": "200*100*10mm"
+  },
+  "mahogany": {
+    "name": "MAHOGANY",
+    "category": "WALL TILES",
+    "unitPrice": 2125,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 12,
+    "size": "400*200*10mm"
+  },
+  "gamba sq": {
+    "name": "GAMBA SQ",
+    "category": "WALL TILES",
+    "unitPrice": 1159,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 22,
+    "size": "200*100*10mm"
+  },
+  "mawingu": {
+    "name": "MAWINGU",
+    "category": "WALL TILES",
+    "unitPrice": 2125,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 12,
+    "size": "400*200*10mm"
+  },
+  "wall gamba": {
+    "name": "WALL GAMBA",
+    "category": "WALL TILES",
+    "unitPrice": 1214,
+    "sqmPrice": 25500,
+    "pcsPerSqm": null,
+    "size": "21"
+  },
+  "wall ngazi": {
+    "name": "WALL NGAZI",
+    "category": "WALL TILES",
+    "unitPrice": 1214,
+    "sqmPrice": 25500,
+    "pcsPerSqm": null,
+    "size": "21"
+  },
+  "mfuniko mdogo": {
+    "name": "MFUNIKO MDOGO",
+    "category": "TRENCH COVERS",
+    "unitPrice": 11500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "500*300*50mm"
+  },
+  "mfuniko mkubwa": {
+    "name": "MFUNIKO MKUBWA",
+    "category": "TRENCH COVERS",
+    "unitPrice": 13500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "600*400*70mm"
+  },
+  "bevo": {
+    "name": "BEVO",
+    "category": "TRENCH COVERS",
+    "unitPrice": 13500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "600*400*70mm"
+  },
+  "50 bevo": {
+    "name": "50 BEVO",
+    "category": "CUBSTONES",
+    "unitPrice": 11500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "500*250*100mm"
+  },
+  "60 square": {
+    "name": "60 SQUARE",
+    "category": "CUBSTONES",
+    "unitPrice": 13500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "600*250*100mm"
+  },
+  "60 oval": {
+    "name": "60 OVAL",
+    "category": "CUBSTONES",
+    "unitPrice": 13500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "600*250*100mm"
+  },
+  "100 bevo": {
+    "name": "100 BEVO",
+    "category": "CUBSTONES",
+    "unitPrice": 17500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*250*100mm"
+  },
+  "100 square": {
+    "name": "100 SQUARE",
+    "category": "CUBSTONES",
+    "unitPrice": 17500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*250*100mm"
+  },
+  "100 lock": {
+    "name": "100 LOCK",
+    "category": "CUBSTONES",
+    "unitPrice": 17500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*250*100mm"
+  },
+  "panasonic": {
+    "name": "PANASONIC",
+    "category": "CUBSTONES",
+    "unitPrice": 18500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*300*100mm"
+  },
+  "50 press": {
+    "name": "50 PRESS",
+    "category": "CUBSTONES",
+    "unitPrice": 13500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "500*350*150mm"
+  },
+  "80 press": {
+    "name": "80 PRESS",
+    "category": "CUBSTONES",
+    "unitPrice": 17500,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "800*350*150mm"
+  },
+  "sand block": {
+    "name": "SAND BLOCK",
+    "category": "BLOCKS",
+    "unitPrice": 1770,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "450*230*150mm"
+  },
+  "chipping block": {
+    "name": "CHIPPING BLOCK",
+    "category": "BLOCKS",
+    "unitPrice": 2242,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "450*230*150mm"
+  },
+  "hollow block": {
+    "name": "HOLLOW BLOCK",
+    "category": "BLOCKS",
+    "unitPrice": 1888,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "450*230*150mm"
+  },
+  "400r": {
+    "name": "400R",
+    "category": "CULVERTS",
+    "unitPrice": 76000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*400mm"
+  },
+  "400n": {
+    "name": "400N",
+    "category": "CULVERTS",
+    "unitPrice": 96000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*400mm"
+  },
+  "600r": {
+    "name": "600R",
+    "category": "CULVERTS",
+    "unitPrice": 96000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*600mm"
+  },
+  "600n": {
+    "name": "600N",
+    "category": "CULVERTS",
+    "unitPrice": 116000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*600mm"
+  },
+  "900r": {
+    "name": "900R",
+    "category": "CULVERTS",
+    "unitPrice": 116000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*900mm"
+  },
+  "900n": {
+    "name": "900N",
+    "category": "CULVERTS",
+    "unitPrice": 146000,
+    "sqmPrice": 0,
+    "pcsPerSqm": 1,
+    "size": "1000*900mm"
+  },
+  "bicon": {
+    "name": "BICON",
+    "category": "NGUZO",
+    "unitPrice": 26000,
+    "sqmPrice": 0,
+    "pcsPerSqm": null,
+    "size": "1"
+  },
+  "nguzo kubwa": {
+    "name": "NGUZO KUBWA",
+    "category": "NGUZO",
+    "unitPrice": 8000,
+    "sqmPrice": 0,
+    "pcsPerSqm": null,
+    "size": "1"
+  },
+  "halfmoon": {
+    "name": "HALFMOON",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40mpira": {
+    "name": "40MPIRA",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "8gon": {
+    "name": "8GON",
+    "category": "FLOOR TILES",
+    "unitPrice": 2318,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 11,
+    "size": "300*300*20mm"
+  },
+  "40 combo": {
+    "name": "40 COMBO",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40 buibui": {
+    "name": "40 BUIBUI",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40-v": {
+    "name": "40-V",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40 mayai": {
+    "name": "40 MAYAI",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  },
+  "40 spider": {
+    "name": "40 SPIDER",
+    "category": "FLOOR TILES",
+    "unitPrice": 4250,
+    "sqmPrice": 25500,
+    "pcsPerSqm": 6,
+    "size": "400*400*20mm"
+  }
+}
