@@ -1,5 +1,5 @@
 // STUMARCOT Precast Concrete - Production & Stock Ledger PWA Service Worker
-const CACHE_NAME = 'stumarcot-pwa-v2.0.0-1791385730456';
+const CACHE_NAME = 'stumarcot-pwa-v2.0.0-1791451578030';
 
 const PRECACHE_ASSETS = [
   './',
