@@ -307,7 +307,7 @@ he=B.useCallback(async(V,J,ie)=>{
     }
   }
   return ke.length>0&&L(_e=>[...ke,..._e]),!0;
-},[j,a]),Pe=B.useCallback(()=>{k(Fl),L([]),localStorage.removeItem(Xl),localStorage.removeItem(Zl)},[]),resetProductBaseline=B.useCallback(async()=>{E(prev=>prev.filter(m=>m.type!=="opening_balance"));try{const raw=localStorage.getItem(cp);if(raw){const list=JSON.parse(raw);localStorage.setItem(cp,JSON.stringify(list.filter(m=>m.type!=="opening_balance")));}}catch(err){}if(Ht()){try{await Ht().from("movements").delete().eq("type","opening_balance");}catch(err){console.warn("Supabase resetProductBaseline error:",err);}}return!0;},[]),resetLedger=B.useCallback(async()=>{E([]);L([]);try{localStorage.setItem(cp,"[]");localStorage.setItem(Zl,"[]");}catch(err){}if(Ht()){try{await Ht().from("movements").delete().neq("id","00000000-0000-0000-0000-000000000000");}catch(err){console.warn("Supabase resetLedger error:",err);}}return!0;},[]),resetSales=B.useCallback(async()=>{E(prev=>prev.filter(m=>m.type!=="dispatch_out"&&m.type!=="sale_out"));try{const raw=localStorage.getItem(cp);if(raw){const list=JSON.parse(raw);localStorage.setItem(cp,JSON.stringify(list.filter(m=>m.type!=="dispatch_out"&&m.type!=="sale_out")));}sessionStorage.removeItem("stumarcot_sales_tab_draft_v3");sessionStorage.removeItem("stumarcot_sales_tab_draft_v2");sessionStorage.removeItem("stumarcot_sales_tab_draft");if(typeof window!=="undefined"){delete window._stumarcot_sales_draft;}}catch(err){}if(Ht()){try{await Ht().from("movements").delete().in("type",["dispatch_out","sale_out"]);}catch(err){console.warn("Supabase resetSales error:",err);}}return!0;},[]),oe=B.useCallback(async V=>{const J=V.batch_id||(crypto.randomUUID?crypto.randomUUID():`batch-${Date.now()}`),ie=new Date().toISOString(),Ce=a||"Supervisor";let ce=V.computed_materials_deducted||null;if(V.type==="production_in"){const ke=x.find(_e=>_e.id===V.item_id);ke&&(ce=Pa(ke,V.quantity_pcs,V.color),await he(ce,J,`Production run of ${ke.name} (${V.quantity_pcs} pcs)`))}const Oe={...V,id:crypto.randomUUID?crypto.randomUUID():`mov-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,batch_id:J,computed_materials_deducted:ce,entered_by:Ce,created_at:ie};if(E(ke=>[Oe,...ke]),Ht()){Y(!0);const ke=await op([Oe]);Y(!1),ke||console.warn("Failed to insert movement to Supabase, stored locally.")}return!0},[x,a,he]),G=B.useCallback(async V=>{var ke;if(V.length===0)return!0;const J=((ke=V[0])==null?void 0:ke.batch_id)||(crypto.randomUUID?crypto.randomUUID():`batch-${Date.now()}`),ie=new Date().toISOString(),Ce=a||"Supervisor",ce=[],Oe=V.map((_e,Ue)=>{const K=x.find(Ae=>Ae.id===_e.item_id);let be=_e.computed_materials_deducted||null;return _e.type==="production_in"&&K&&_e.quantity_pcs>0&&(be=Pa(K,_e.quantity_pcs,_e.color),ce.push({item:K,pieces:_e.quantity_pcs,color:_e.color})),{..._e,id:crypto.randomUUID?crypto.randomUUID():`mov-${Date.now()}-${Ue}-${Math.random().toString(36).slice(2,6)}`,batch_id:_e.batch_id||J,computed_materials_deducted:be,entered_by:Ce,created_at:ie}});if(ce.length>0){const _e=lg(ce);await he(_e,J,`Batch production of ${ce.length} product entries (${V.reduce((Ue,K)=>Ue+(K.quantity_pcs||0),0)} pcs)`)}if(E(_e=>[...Oe,..._e]),Ht()){Y(!0);const _e=await op(Oe);Y(!1),_e||console.warn("Failed to insert movements batch to Supabase, stored locally.")}return!0},[x,a,he]),ue=B.useCallback(async V=>{const J=new Date().toISOString(),ie={...V,updated_at:J};return b(ce=>ce.map(Oe=>Oe.id===V.id?ie:Oe)),Ht()&&(Y(!0),await Av(ie),Y(!1)),!0},[]),P=B.useCallback(async V=>{const J=new Date().toISOString(),ie={...V,id:crypto.randomUUID?crypto.randomUUID():`item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,created_at:J,updated_at:J};return b(ce=>[ie,...ce]),Ht()&&(Y(!0),await Iv(ie),Y(!1)),ie},[]),y=B.useMemo(()=>{const V=new Map;for(const ce of w){const Oe=V.get(ce.item_id)||[];Oe.push(ce),V.set(ce.item_id,Oe)}const{productionVolumePcs:J,salesVelocityPcs:ie,totalMovementVolume:Ce}=vc(w);return x.map(ce=>{const Oe=V.get(ce.id)||[],ze={};if(ce.colors&&ce.colors.length>0)for(const Ze of ce.colors)ze[Ze]={pcs:0,sqm:null};let ke=0,_e=null;for(const Ze of Oe){(!_e||Ze.date>_e)&&(_e=Ze.date);const kt=Ze.delta<0?-Ze.quantity_pcs:Ze.quantity_pcs;ke+=kt;const Xn=Ze.color||"Standard";ze[Xn]||(ze[Xn]={pcs:0,sqm:null}),ze[Xn].pcs+=kt}let Ue=null;if(ce.unit==="sqm"&&ce.pcs_per_sqm&&ce.pcs_per_sqm>0){Ue=Number((ke/ce.pcs_per_sqm).toFixed(2));for(const Ze of Object.keys(ze))ze[Ze].sqm=Number((ze[Ze].pcs/ce.pcs_per_sqm).toFixed(2))}const K=Ue!==null?Ue:ke,be=ce.reorder_level!==null&&ce.reorder_level!==void 0&&(ce.unit==="sqm"&&Ue!==null?Ue<=ce.reorder_level:ke<=ce.reorder_level),Ae=lt(ce),qe=ce.moldCount??Ae.moldCount??50,Ve=ce.unit==="sqm"&&ce.pcs_per_sqm&&ce.pcs_per_sqm>0?Number((qe/ce.pcs_per_sqm).toFixed(2)):Ae.moldAreaSqm,Me=J.get(ce.id)||0,Xe=ie.get(ce.id)||0,St=Ce.get(ce.id)||0;return{item:ce,total_pcs:Math.max(0,ke),total_sqm:Ue!==null?Math.max(0,Ue):null,current_balance:Math.max(0,K),by_color:ze,is_low_stock:be,last_movement_date:_e,total_movements_count:Oe.length,moldCount:qe,dailyCapacityPcs:qe,dailyCapacitySqm:Ve,production_volume_pcs:Me,sales_volume_pcs:Xe,total_velocity_score:St}})},[x,w]),O=B.useCallback(V=>y.find(J=>J.item.id===V),[y]),z=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),T=B.useMemo(()=>w.filter(V=>V.date===z),[w,z]),N=T.length,S=B.useMemo(()=>T.filter(V=>V.type==="production_in").reduce((V,J)=>V+(J.quantity_pcs||0),0),[T]),D=B.useMemo(()=>T.filter(V=>V.type==="production_in"&&V.quantity_sqm!==null).reduce((V,J)=>V+(J.quantity_sqm||0),0),[T]),F=B.useMemo(()=>y.filter(V=>V.is_low_stock).length,[y]),Z=B.useMemo(()=>x.reduce((V,J)=>V+(J.moldCount||lt(J).moldCount||0),0),[x]),se=B.useMemo(()=>T.filter(V=>V.type==="production_in").reduce((V,J)=>V+(J.quantity_pcs||0),0),[T]),we=B.useMemo(()=>Z<=0?0:Math.min(100,Number((se/Z*100).toFixed(1))),[Z,se]);return o.jsx(Wp.Provider,{value:{isUnlocked:t,staffName:a,unlock:Be,lock:M,setStaffName:ee,recentStaffNames:u,adminSettings:f,updateAdminSettings:g,resetAdminSettings:_,items:x,movements:w,isLoading:W,isSyncing:ne,isSupabaseConnected:ae,supabaseUrl:xe,rawMaterials:j,rawMaterialMovements:A,recordRawMaterialBaselineBatch:recordRawMaterialBaselineBatch,addRawMaterialStock:le,updateRawMaterialMaster:updateRawMaterialMaster,addRawMaterial:addRawMaterial,removeRawMaterial:removeRawMaterial,resetAllRawMaterialsToZero:resetAllRawMaterialsToZero,deductRawMaterialsBatch:he,resetRawMaterialsToDefault:Pe,resetProductBaseline:resetProductBaseline,resetLedger:resetLedger,resetSales:resetSales,addMovement:oe,addMovementsBatch:G,updateItem:ue,addItem:P,refreshData:Ie,stockSummaries:y,getStockSummary:O,todayMovementsCount:N,todayProductionPcs:S,todayProductionSqm:D,lowStockCount:F,totalFactoryMolds:Z,todayMoldsInUse:se,overallMoldUtilizationPct:we},children:s})},Vt=()=>{const s=B.useContext(Wp);if(!s)throw new Error("useApp must be used within an AppProvider");return s};/**
+},[j,a]),Pe=B.useCallback(()=>{k(Fl),L([]),localStorage.removeItem(Xl),localStorage.removeItem(Zl)},[]),oe=B.useCallback(async V=>{const J=V.batch_id||(crypto.randomUUID?crypto.randomUUID():`batch-${Date.now()}`),ie=new Date().toISOString(),Ce=a||"Supervisor";let ce=V.computed_materials_deducted||null;if(V.type==="production_in"){const ke=x.find(_e=>_e.id===V.item_id);ke&&(ce=Pa(ke,V.quantity_pcs,V.color),await he(ce,J,`Production run of ${ke.name} (${V.quantity_pcs} pcs)`))}const Oe={...V,id:crypto.randomUUID?crypto.randomUUID():`mov-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,batch_id:J,computed_materials_deducted:ce,entered_by:Ce,created_at:ie};if(E(ke=>[Oe,...ke]),Ht()){Y(!0);const ke=await op([Oe]);Y(!1),ke||console.warn("Failed to insert movement to Supabase, stored locally.")}return!0},[x,a,he]),G=B.useCallback(async V=>{var ke;if(V.length===0)return!0;const J=((ke=V[0])==null?void 0:ke.batch_id)||(crypto.randomUUID?crypto.randomUUID():`batch-${Date.now()}`),ie=new Date().toISOString(),Ce=a||"Supervisor",ce=[],Oe=V.map((_e,Ue)=>{const K=x.find(Ae=>Ae.id===_e.item_id);let be=_e.computed_materials_deducted||null;return _e.type==="production_in"&&K&&_e.quantity_pcs>0&&(be=Pa(K,_e.quantity_pcs,_e.color),ce.push({item:K,pieces:_e.quantity_pcs,color:_e.color})),{..._e,id:crypto.randomUUID?crypto.randomUUID():`mov-${Date.now()}-${Ue}-${Math.random().toString(36).slice(2,6)}`,batch_id:_e.batch_id||J,computed_materials_deducted:be,entered_by:Ce,created_at:ie}});if(ce.length>0){const _e=lg(ce);await he(_e,J,`Batch production of ${ce.length} product entries (${V.reduce((Ue,K)=>Ue+(K.quantity_pcs||0),0)} pcs)`)}if(E(_e=>[...Oe,..._e]),Ht()){Y(!0);const _e=await op(Oe);Y(!1),_e||console.warn("Failed to insert movements batch to Supabase, stored locally.")}return!0},[x,a,he]),ue=B.useCallback(async V=>{const J=new Date().toISOString(),ie={...V,updated_at:J};return b(ce=>ce.map(Oe=>Oe.id===V.id?ie:Oe)),Ht()&&(Y(!0),await Av(ie),Y(!1)),!0},[]),P=B.useCallback(async V=>{const J=new Date().toISOString(),ie={...V,id:crypto.randomUUID?crypto.randomUUID():`item-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,created_at:J,updated_at:J};return b(ce=>[ie,...ce]),Ht()&&(Y(!0),await Iv(ie),Y(!1)),ie},[]),y=B.useMemo(()=>{const V=new Map;for(const ce of w){const Oe=V.get(ce.item_id)||[];Oe.push(ce),V.set(ce.item_id,Oe)}const{productionVolumePcs:J,salesVelocityPcs:ie,totalMovementVolume:Ce}=vc(w);return x.map(ce=>{const Oe=V.get(ce.id)||[],ze={};if(ce.colors&&ce.colors.length>0)for(const Ze of ce.colors)ze[Ze]={pcs:0,sqm:null};let ke=0,_e=null;for(const Ze of Oe){(!_e||Ze.date>_e)&&(_e=Ze.date);const kt=Ze.delta<0?-Ze.quantity_pcs:Ze.quantity_pcs;ke+=kt;const Xn=Ze.color||"Standard";ze[Xn]||(ze[Xn]={pcs:0,sqm:null}),ze[Xn].pcs+=kt}let Ue=null;if(ce.unit==="sqm"&&ce.pcs_per_sqm&&ce.pcs_per_sqm>0){Ue=Number((ke/ce.pcs_per_sqm).toFixed(2));for(const Ze of Object.keys(ze))ze[Ze].sqm=Number((ze[Ze].pcs/ce.pcs_per_sqm).toFixed(2))}const K=Ue!==null?Ue:ke,be=ce.reorder_level!==null&&ce.reorder_level!==void 0&&(ce.unit==="sqm"&&Ue!==null?Ue<=ce.reorder_level:ke<=ce.reorder_level),Ae=lt(ce),qe=ce.moldCount??Ae.moldCount??50,Ve=ce.unit==="sqm"&&ce.pcs_per_sqm&&ce.pcs_per_sqm>0?Number((qe/ce.pcs_per_sqm).toFixed(2)):Ae.moldAreaSqm,Me=J.get(ce.id)||0,Xe=ie.get(ce.id)||0,St=Ce.get(ce.id)||0;return{item:ce,total_pcs:Math.max(0,ke),total_sqm:Ue!==null?Math.max(0,Ue):null,current_balance:Math.max(0,K),by_color:ze,is_low_stock:be,last_movement_date:_e,total_movements_count:Oe.length,moldCount:qe,dailyCapacityPcs:qe,dailyCapacitySqm:Ve,production_volume_pcs:Me,sales_volume_pcs:Xe,total_velocity_score:St}})},[x,w]),O=B.useCallback(V=>y.find(J=>J.item.id===V),[y]),z=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),T=B.useMemo(()=>w.filter(V=>V.date===z),[w,z]),N=T.length,S=B.useMemo(()=>T.filter(V=>V.type==="production_in").reduce((V,J)=>V+(J.quantity_pcs||0),0),[T]),D=B.useMemo(()=>T.filter(V=>V.type==="production_in"&&V.quantity_sqm!==null).reduce((V,J)=>V+(J.quantity_sqm||0),0),[T]),F=B.useMemo(()=>y.filter(V=>V.is_low_stock).length,[y]),Z=B.useMemo(()=>x.reduce((V,J)=>V+(J.moldCount||lt(J).moldCount||0),0),[x]),se=B.useMemo(()=>T.filter(V=>V.type==="production_in").reduce((V,J)=>V+(J.quantity_pcs||0),0),[T]),we=B.useMemo(()=>Z<=0?0:Math.min(100,Number((se/Z*100).toFixed(1))),[Z,se]);return o.jsx(Wp.Provider,{value:{isUnlocked:t,staffName:a,unlock:Be,lock:M,setStaffName:ee,recentStaffNames:u,adminSettings:f,updateAdminSettings:g,resetAdminSettings:_,items:x,movements:w,isLoading:W,isSyncing:ne,isSupabaseConnected:ae,supabaseUrl:xe,rawMaterials:j,rawMaterialMovements:A,recordRawMaterialBaselineBatch:recordRawMaterialBaselineBatch,addRawMaterialStock:le,updateRawMaterialMaster:updateRawMaterialMaster,addRawMaterial:addRawMaterial,removeRawMaterial:removeRawMaterial,resetAllRawMaterialsToZero:resetAllRawMaterialsToZero,deductRawMaterialsBatch:he,resetRawMaterialsToDefault:Pe,addMovement:oe,addMovementsBatch:G,updateItem:ue,addItem:P,refreshData:Ie,stockSummaries:y,getStockSummary:O,todayMovementsCount:N,todayProductionPcs:S,todayProductionSqm:D,lowStockCount:F,totalFactoryMolds:Z,todayMoldsInUse:se,overallMoldUtilizationPct:we},children:s})},Vt=()=>{const s=B.useContext(Wp);if(!s)throw new Error("useApp must be used within an AppProvider");return s};/**
  * @license lucide-react v1.41.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2898,303 +2898,7 @@ Just type naturally! What would you like to do?`,timestamp:new Date().toLocaleTi
     ]
   });
 },
-DashboardSalesRecordView = ({ movements: mv, items: d, onNavigate: s }) => {
-  const { resetSales } = Vt();
-  const [search, setSearch] = B.useState("");
-  const [dateFilter, setDateFilter] = B.useState("all");
-
-  const todayStr = B.useMemo(() => new Date().toISOString().split("T")[0], []);
-  
-  const salesMovements = B.useMemo(() => {
-    return (mv || [])
-      .filter(m => m.type === "dispatch_out" || m.type === "sale_out")
-      .sort((A, B_item) => (B_item.date || "").localeCompare(A.date || "") || (B_item.id || 0) - (A.id || 0));
-  }, [mv]);
-
-  const todayRecords = B.useMemo(() => salesMovements.filter(m => m.date === todayStr), [salesMovements, todayStr]);
-  const todayRevenue = B.useMemo(() => {
-    return todayRecords.reduce((acc, m) => acc + (m.total_price || (m.price_per_unit ? m.price_per_unit * Math.abs(m.quantity_pcs || m.delta || 0) : 0)), 0);
-  }, [todayRecords]);
-  const todayPcs = B.useMemo(() => {
-    return todayRecords.reduce((acc, m) => acc + Math.abs(m.quantity_pcs || m.delta || 0), 0);
-  }, [todayRecords]);
-  const todaySqm = B.useMemo(() => {
-    return todayRecords.reduce((acc, m) => acc + (m.quantity_sqm || 0), 0);
-  }, [todayRecords]);
-
-  const filteredSales = B.useMemo(() => {
-    const now = new Date();
-    return salesMovements.filter(m => {
-      if (dateFilter === "today" && m.date !== todayStr) return false;
-      if (dateFilter === "week") {
-        const dObj = new Date(m.date);
-        const diffDays = (now - dObj) / (1000 * 60 * 60 * 24);
-        if (diffDays > 7 || diffDays < 0) return false;
-      }
-      if (dateFilter === "month") {
-        if (!m.date || m.date.slice(0, 7) !== todayStr.slice(0, 7)) return false;
-      }
-
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const item = d.find(it => it.id === m.item_id);
-        const itemName = item ? item.name.toLowerCase() : "";
-        const customer = (m.customer_name || "").toLowerCase();
-        const phone = (m.customer_phone || "").toLowerCase();
-        const note = (m.note || "").toLowerCase();
-        return customer.includes(q) || phone.includes(q) || note.includes(q) || itemName.includes(q);
-      }
-      return true;
-    });
-  }, [salesMovements, dateFilter, search, todayStr, d]);
-
-  return o.jsxs("div", {
-    style: { display: "flex", flexDirection: "column", gap: "14px" },
-    children: [
-      o.jsxs("div", {
-        style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" },
-        children: [
-          o.jsxs("div", {
-            children: [
-              o.jsx("h2", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Sales & Dispatch Records" }),
-              o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }, children: "Customer shipments, dispatches & revenue ledger" })
-            ]
-          }),
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", gap: "8px" },
-            children: [
-              o.jsxs("button", {
-                type: "button",
-                onClick: async () => {
-                  if (window.confirm("Are you sure you want to RESET all sales dispatches?\n\nThis will clear all recorded test sales records and restore inventory.")) {
-                    if (resetSales) await resetSales();
-                    window.alert("✓ Sales records have been reset.");
-                  }
-                },
-                className: "btn btn-ghost btn-sm",
-                style: { border: "1px solid rgba(239, 68, 68, 0.4)", color: "#ef4444", padding: "7px 11px", borderRadius: "8px", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", gap: "5px" },
-                title: "Reset all sales dispatch records for testing",
-                children: [o.jsx("span", { children: "🔄" }), o.jsx("span", { children: "Reset Sales" })]
-              }),
-              o.jsxs("button", {
-                type: "button",
-                onClick: () => s("sales"),
-                className: "btn btn-primary btn-sm",
-                style: { display: "flex", alignItems: "center", gap: "6px", background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249, 115, 22, 0.35)", padding: "7px 14px", borderRadius: "8px", fontWeight: 700 },
-                children: [
-                  o.jsx(Ka, { size: 14 }),
-                  o.jsx("span", { children: "+ Record New Sale" })
-                ]
-              })
-            ]
-          })
-        ]
-      }),
-      o.jsxs("div", {
-        style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" },
-        children: [
-          o.jsxs("div", {
-            className: "card-elevated",
-            style: { padding: "12px", background: "linear-gradient(135deg, rgba(16, 185, 129, 0.12), var(--bg-surface))", border: "1px solid rgba(16, 185, 129, 0.25)" },
-            children: [
-              o.jsx("span", { style: { fontSize: "10px", color: "#34d399", fontWeight: 700, textTransform: "uppercase", display: "block" }, children: "Today's Revenue" }),
-              o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, color: "#10b981", marginTop: "4px" }, children: ["TZS ", todayRevenue.toLocaleString()] }),
-              o.jsxs("span", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: [todayRecords.length, " dispatches today"] })
-            ]
-          }),
-          o.jsxs("div", {
-            className: "card-elevated",
-            style: { padding: "12px", background: "linear-gradient(135deg, rgba(56, 189, 248, 0.12), var(--bg-surface))", border: "1px solid rgba(56, 189, 248, 0.25)" },
-            children: [
-              o.jsx("span", { style: { fontSize: "10px", color: "#38bdf8", fontWeight: 700, textTransform: "uppercase", display: "block" }, children: "Today's Volume" }),
-              o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, color: "#38bdf8", marginTop: "4px" }, children: [todayPcs.toLocaleString(), " pcs"] }),
-              o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: todaySqm > 0 ? todaySqm.toFixed(1) + " sqm" : "Precast volume" })
-            ]
-          }),
-          o.jsxs("div", {
-            className: "card-elevated",
-            style: { padding: "12px", background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" },
-            children: [
-              o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", display: "block" }, children: "All-Time Dispatches" }),
-              o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, color: "#f8fafc", marginTop: "4px" }, children: [salesMovements.length, " Records"] }),
-              o.jsx("span", { style: { fontSize: "10.5px", color: "var(--brand-400)" }, children: "Verified in ledger" })
-            ]
-          })
-        ]
-      }),
-      o.jsxs("div", {
-        className: "card",
-        style: { padding: "12px", display: "flex", flexDirection: "column", gap: "10px" },
-        children: [
-          o.jsxs("div", {
-            style: { display: "flex", gap: "8px", position: "relative" },
-            children: [
-              o.jsxs("div", {
-                className: "search-wrapper",
-                style: { flex: 1 },
-                children: [
-                  o.jsx(ii, { className: "search-icon", size: 16 }),
-                  o.jsx("input", {
-                    type: "text",
-                    className: "input-field search-input",
-                    placeholder: "Search customer, destination, phone, product...",
-                    value: search,
-                    onChange: e => setSearch(e.target.value)
-                  })
-                ]
-              }),
-              search ? o.jsx("button", {
-                type: "button",
-                onClick: () => setSearch(""),
-                className: "btn-ghost",
-                style: { padding: "6px 10px", fontSize: "12px", color: "var(--text-muted)" },
-                children: "Clear"
-              }) : null
-            ]
-          }),
-          o.jsxs("div", {
-            style: { display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "2px" },
-            children: [
-              { id: "all", label: "All Dispatches" },
-              { id: "today", label: "Today" },
-              { id: "week", label: "Last 7 Days" },
-              { id: "month", label: "This Month" }
-            ].map(f => o.jsx("button", {
-              key: f.id,
-              type: "button",
-              onClick: () => setDateFilter(f.id),
-              style: {
-                padding: "4px 10px",
-                borderRadius: "20px",
-                fontSize: "11.5px",
-                fontWeight: 600,
-                border: "1px solid",
-                borderColor: dateFilter === f.id ? "var(--brand-500)" : "var(--border-subtle)",
-                background: dateFilter === f.id ? "rgba(249, 115, 22, 0.15)" : "var(--bg-input)",
-                color: dateFilter === f.id ? "var(--brand-400)" : "var(--text-secondary)",
-                cursor: "pointer",
-                whiteSpace: "nowrap"
-              },
-              children: f.label
-            }))
-          })
-        ]
-      }),
-      filteredSales.length === 0 ? o.jsxs("div", {
-        className: "card",
-        style: { padding: "32px 16px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
-        children: [
-          o.jsx("div", { style: { fontSize: "36px" }, children: "📦" }),
-          o.jsx("div", { style: { fontSize: "15px", fontWeight: 700, color: "#f8fafc" }, children: "No sales records found" }),
-          o.jsx("p", { style: { fontSize: "12.5px", color: "var(--text-muted)", maxWidth: "340px", margin: 0 }, children: search ? "No dispatches matched your search criteria. Try a different query." : "No sales logged for the selected timeframe. Record client dispatches to track deliveries." }),
-          o.jsxs("button", {
-            type: "button",
-            onClick: () => s("sales"),
-            className: "btn btn-primary btn-sm",
-            style: { marginTop: "6px" },
-            children: [
-              o.jsx(Ka, { size: 14 }),
-              o.jsx("span", { children: "Record New Sale" })
-            ]
-          })
-        ]
-      }) : o.jsx("div", {
-        style: { display: "flex", flexDirection: "column", gap: "8px" },
-        children: filteredSales.map(sale => {
-          const catItem = d.find(it => it.id === sale.item_id);
-          const pcs = Math.abs(sale.quantity_pcs || sale.delta || 0);
-          const amount = sale.total_price || (sale.price_per_unit ? sale.price_per_unit * pcs : 0);
-          const colorName = sale.color || (sale.note && sale.note.includes("Color:") ? sale.note.split("Color:")[1].split("|")[0].trim() : "");
-
-          return o.jsxs("div", {
-            className: "card-elevated",
-            style: { padding: "12px 14px", border: "1px solid var(--border-subtle)", background: "var(--bg-surface-elevated)", display: "flex", flexDirection: "column", gap: "8px" },
-            children: [
-              o.jsxs("div", {
-                style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "6px" },
-                children: [
-                  o.jsxs("div", {
-                    style: { display: "flex", alignItems: "center", gap: "8px" },
-                    children: [
-                      o.jsx("span", { style: { fontWeight: 800, fontSize: "14px", color: "#f8fafc" }, children: sale.customer_name || "Direct Customer" }),
-                      sale.customer_phone ? o.jsx("span", {
-                        style: { fontSize: "11px", color: "var(--brand-400)", fontFamily: "var(--font-mono)", background: "rgba(249, 115, 22, 0.1)", padding: "1px 6px", borderRadius: "4px" },
-                        children: sale.customer_phone
-                      }) : null
-                    ]
-                  }),
-                  o.jsx("span", {
-                    style: { fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" },
-                    children: sale.date || todayStr
-                  })
-                ]
-              }),
-              o.jsxs("div", {
-                style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", background: "var(--bg-input)", padding: "8px 10px", borderRadius: "6px" },
-                children: [
-                  o.jsxs("div", {
-                    style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" },
-                    children: [
-                      o.jsx("strong", { style: { fontSize: "13px", color: "#f8fafc" }, children: catItem ? catItem.name : "Precast Item" }),
-                      catItem ? o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10px", padding: "1px 5px" }, children: catItem.category }) : null,
-                      colorName ? o.jsxs("span", {
-                        className: "badge",
-                        style: { fontSize: "10px", padding: "1px 6px", background: "rgba(255,255,255,0.08)", color: "#f8fafc", display: "inline-flex", alignItems: "center", gap: "4px" },
-                        children: [
-                          o.jsx("span", { style: { width: "6px", height: "6px", borderRadius: "50%", background: colorName === "Red" ? "#ef4444" : colorName === "Yellow" ? "#eab308" : colorName === "Black" ? "#475569" : "#94a3b8" } }),
-                          colorName
-                        ]
-                      }) : null
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { textAlign: "right" },
-                    children: [
-                      o.jsxs("div", { style: { fontSize: "14px", fontWeight: 800, color: "#10b981", fontFamily: "var(--font-mono)" }, children: ["TZS ", amount > 0 ? amount.toLocaleString() : "—"] }),
-                      o.jsxs("div", { style: { fontSize: "11.5px", color: "var(--text-secondary)", fontWeight: 700 }, children: [pcs.toLocaleString(), " pcs", sale.quantity_sqm ? " • " + sale.quantity_sqm + " sqm" : ""] })
-                    ]
-                  })
-                ]
-              }),
-              sale.note ? o.jsx("div", {
-                style: { fontSize: "11px", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-                children: sale.note
-              }) : null
-            ]
-          }, sale.id || (sale.batch_id + "_" + sale.item_id));
-        })
-      })
-    ]
-  });
-},
-
-x1=({onNavigate:s})=>{
-  const {stockSummaries:t,todayMovementsCount:r,todayProductionPcs:a,todayProductionSqm:c,lowStockCount:u,items:d,rawMaterials:f,addRawMaterialStock:m,totalFactoryMolds:g,todayMoldsInUse:_,overallMoldUtilizationPct:x,movements:mv}=Vt();
-  const [b,w]=B.useState("");
-  const [E,j]=B.useState("All");
-  const [k,A]=B.useState("general");
-  const [filterMenuOpen,setFilterMenuOpen]=B.useState(!1);
-  const [L,W]=B.useState("inventory");
-  const [H,ne]=B.useState(!1);
-  const [Y,ae]=B.useState("cement_50kg");
-  const [fe,xe]=B.useState("");
-  const [Ie,Be]=B.useState("");
-  const Pe=B.useMemo(()=>{const z=new Set(d.map(T=>T.category));return["All",...Array.from(z)]},[d]);
-  const oe=B.useMemo(()=>t.filter(z=>z.is_low_stock),[t]);
-  const G=B.useMemo(()=>[...t].filter(z=>(z.total_velocity_score||0)>0||(z.total_movements_count||0)>0).sort((z,T)=>{const N=z.total_velocity_score||0,S=T.total_velocity_score||0;return N!==S?S-N:(T.total_movements_count||0)-(z.total_movements_count||0)}).slice(0,4),[t]);
-  const ue=B.useMemo(()=>t.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}).sort((T,N)=>{if(k==="critical"){if(T.is_low_stock&&!N.is_low_stock)return-1;if(!T.is_low_stock&&N.is_low_stock)return 1}const S=hn(T.item),D=hn(N.item);return S!==D?S-D:T.item.name.localeCompare(N.item.name)}),[t,E,b,k]);
-  const filteredOe=B.useMemo(()=>oe.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}),[oe,E,b]);
-  const filteredG=B.useMemo(()=>G.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}),[G,E,b]);
-  const y=async z=>{z.preventDefault();const T=parseFloat(fe);isNaN(T)||T<=0||(await m(Y,T,Ie),ne(!1),xe(""),Be(""))};
-
-  return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[
-    o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:"6px",background:"var(--bg-surface-elevated)",padding:"4px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[
-  o.jsxs("button",{type:"button",onClick:()=>W("raw_materials"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="raw_materials"?"var(--brand-500)":"transparent",color:L==="raw_materials"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(pc,{size:14}),o.jsx("span",{children:"Raw Materials"})]}),
-  o.jsxs("button",{type:"button",onClick:()=>W("inventory"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="inventory"?"var(--brand-500)":"transparent",color:L==="inventory"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(si,{size:14}),o.jsx("span",{children:"Finished Goods"})]}),
-  o.jsxs("button",{type:"button",onClick:()=>W("sales_record"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="sales_record"?"var(--brand-500)":"transparent",color:L==="sales_record"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(Ka,{size:14}),o.jsx("span",{children:"Sales record"})]})
-]}),
-    L==="raw_materials"&&o.jsx(RawMaterialMasterView,{rawMaterials:f,addRawMaterialStock:m,recordRawMaterialBaselineBatch:Vt().recordRawMaterialBaselineBatch,updateRawMaterialMaster:Vt().updateRawMaterialMaster,addRawMaterial:Vt().addRawMaterial,removeRawMaterial:Vt().removeRawMaterial,resetAllRawMaterialsToZero:Vt().resetAllRawMaterialsToZero,onNavigate:s,staffName:Vt().staffName}),
-    L==="inventory"&&o.jsxs(o.Fragment,{children:[
+x1=({onNavigate:s})=>{var O;const{stockSummaries:t,todayMovementsCount:r,todayProductionPcs:a,todayProductionSqm:c,lowStockCount:u,items:d,rawMaterials:f,addRawMaterialStock:m,totalFactoryMolds:g,todayMoldsInUse:_,overallMoldUtilizationPct:x}=Vt(),[b,w]=B.useState(""),[E,j]=B.useState("All"),[k,A]=B.useState("general"),[filterMenuOpen,setFilterMenuOpen]=B.useState(!1),[L,W]=B.useState("inventory"),[H,ne]=B.useState(!1),[Y,ae]=B.useState("cement_50kg"),[fe,xe]=B.useState(""),[Ie,Be]=B.useState(""),[M,ee]=B.useState(((O=d[0])==null?void 0:O.id)||""),[le,he]=B.useState("200"),Pe=B.useMemo(()=>{const z=new Set(d.map(T=>T.category));return["All",...Array.from(z)]},[d]),oe=B.useMemo(()=>t.filter(z=>z.is_low_stock),[t]),G=B.useMemo(()=>[...t].filter(z=>(z.total_velocity_score||0)>0||(z.total_movements_count||0)>0).sort((z,T)=>{const N=z.total_velocity_score||0,S=T.total_velocity_score||0;return N!==S?S-N:(T.total_movements_count||0)-(z.total_movements_count||0)}).slice(0,4),[t]),ue=B.useMemo(()=>t.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}).sort((T,N)=>{if(k==="critical"){if(T.is_low_stock&&!N.is_low_stock)return-1;if(!T.is_low_stock&&N.is_low_stock)return 1}const S=hn(T.item),D=hn(N.item);return S!==D?S-D:T.item.name.localeCompare(N.item.name)}),[t,E,b,k]),filteredOe=B.useMemo(()=>oe.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}),[oe,E,b]),filteredG=B.useMemo(()=>G.filter(T=>{const N=E==="All"||T.item.category===E,S=T.item.name.toLowerCase().includes(b.toLowerCase())||T.item.category.toLowerCase().includes(b.toLowerCase());return N&&S}),[G,E,b]),P=B.useMemo(()=>{const z=d.find(J=>J.id===M)||d[0];if(!z)return null;const T=parseInt(le,10)||0,N=lt(z),S=z.moldCount||N.moldCount||50,D=z.wastani_per_bag||N.wastaniPcsPerBag||50,F=S>0?Math.ceil(T/S):1,Z=T>S,se=S>0?Math.min(100,Number((T/S*100).toFixed(1))):100,we=Pa(z,T,"White");let V=null;return z.unit==="sqm"&&z.pcs_per_sqm&&z.pcs_per_sqm>0&&(V=Number((T/z.pcs_per_sqm).toFixed(2))),{item:z,spec:N,pcs:T,totalSqm:V,moldCount:S,wastani:D,cyclesNeeded:F,isOverOneCycle:Z,utilizationSingleCyclePct:se,materials:we}},[d,M,le]),y=async z=>{z.preventDefault();const T=parseFloat(fe);isNaN(T)||T<=0||(await m(Y,T,Ie),ne(!1),xe(""),Be(""))};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:"6px",background:"var(--bg-surface-elevated)",padding:"4px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsxs("button",{type:"button",onClick:()=>W("inventory"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="inventory"?"var(--brand-500)":"transparent",color:L==="inventory"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(si,{size:14}),o.jsx("span",{children:"Finished Goods"})]}),o.jsxs("button",{type:"button",onClick:()=>W("capacity_planner"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="capacity_planner"?"var(--brand-500)":"transparent",color:L==="capacity_planner"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(qa,{size:14}),o.jsx("span",{children:"Capacity Planner"})]}),o.jsxs("button",{type:"button",onClick:()=>W("raw_materials"),style:{padding:"8px 10px",borderRadius:"6px",border:"none",fontSize:"12.5px",fontWeight:700,background:L==="raw_materials"?"var(--brand-500)":"transparent",color:L==="raw_materials"?"#fff":"var(--text-secondary)",cursor:"pointer",transition:"all 0.15s ease",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"},children:[o.jsx(pc,{size:14}),o.jsx("span",{children:"Raw Materials"})]})]}),L==="capacity_planner"&&o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{className:"card-elevated",style:{padding:"16px",background:"linear-gradient(135deg, rgba(56, 189, 248, 0.1), var(--bg-surface))",border:"1px solid rgba(56, 189, 248, 0.3)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"},children:[o.jsxs("div",{children:[o.jsx("span",{style:{fontSize:"11px",color:"#38bdf8",fontWeight:700,textTransform:"uppercase"},children:"Daily Mold Turnaround Utilization"}),o.jsxs("div",{style:{fontSize:"18px",fontWeight:800,color:"#f8fafc"},children:[_.toLocaleString()," / ",g.toLocaleString()," molds cast today"]})]}),o.jsx("div",{style:{textAlign:"right"},children:o.jsxs("span",{style:{fontSize:"24px",fontWeight:800,color:"#38bdf8"},children:[x,"%"]})})]}),o.jsx("div",{style:{width:"100%",height:"8px",background:"rgba(255, 255, 255, 0.1)",borderRadius:"4px",overflow:"hidden"},children:o.jsx("div",{style:{width:`${x}%`,height:"100%",background:"linear-gradient(90deg, #38bdf8, #f97316)",borderRadius:"4px",transition:"width 0.3s ease"}})}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)",marginTop:"8px"},children:"Calculated across all physical molds available at Stumarcot Dodoma site."})]}),o.jsxs("div",{className:"card-elevated",style:{padding:"16px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"12px"},children:[o.jsx(kc,{size:18,color:"var(--brand-400)"}),o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"15px",fontWeight:800},children:"Production Capacity & Mix Simulator"}),o.jsx("p",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Simulate a production order to check mold limits, turnaround cycles, and required raw materials"})]})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1.2fr 0.8fr",gap:"10px",marginBottom:"12px"},children:[o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Select Product"}),o.jsx("select",{value:M,onChange:z=>ee(z.target.value),className:"input-field",style:{fontSize:"13px",fontWeight:600,padding:"8px 10px"},children:d.map(z=>o.jsxs("option",{value:z.id,children:[z.name," (",z.category," · ",z.moldCount||lt(z).moldCount," molds)"]},z.id))})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Target Quantity (pcs)"}),o.jsx("input",{type:"number",min:"1",step:"10",value:le,onChange:z=>he(z.target.value),className:"input-field mono",style:{fontSize:"15px",fontWeight:700},placeholder:"200"})]})]}),P&&o.jsxs("div",{style:{background:"var(--bg-surface)",padding:"12px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"},children:[o.jsxs("div",{children:[o.jsx("span",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Physical Fleet:"}),o.jsxs("strong",{style:{fontSize:"14px",color:"#fff",marginLeft:"6px"},children:[P.moldCount," molds (",P.spec.size||"Standard",")"]})]}),o.jsx("div",{style:{textAlign:"right"},children:o.jsxs("span",{className:`badge ${P.isOverOneCycle?"badge-warning":"badge-success"}`,style:{fontSize:"11px",padding:"3px 8px"},children:[P.cyclesNeeded," Casting ",P.cyclesNeeded===1?"Cycle":"Cycles"," Required"]})})]}),P.isOverOneCycle&&o.jsxs("div",{style:{padding:"8px 10px",borderRadius:"6px",background:"rgba(245, 158, 11, 0.1)",border:"1px solid rgba(245, 158, 11, 0.3)",color:"#fbbf24",fontSize:"11.5px",marginBottom:"10px"},children:["⚠️ Target exceeds 1-day mold capacity (",P.moldCount," molds). Will require ",P.cyclesNeeded," curing days / cycles."]}),o.jsxs("div",{style:{fontSize:"11.5px",fontWeight:700,color:"var(--text-secondary)",marginBottom:"6px"},children:["🏗️ Raw Materials Needed for ",P.pcs," pcs ",P.totalSqm?`(${P.totalSqm} sqm)`:"",":"]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:"6px",marginBottom:"12px"},children:[o.jsxs("div",{style:{background:"var(--bg-input)",padding:"8px",borderRadius:"6px"},children:[o.jsx("span",{style:{fontSize:"10.5px",color:"var(--text-muted)",display:"block"},children:"Cement"}),o.jsxs("strong",{style:{fontSize:"13px",color:"var(--brand-400)"},children:[P.materials.cementBags," bags"]})]}),o.jsxs("div",{style:{background:"var(--bg-input)",padding:"8px",borderRadius:"6px"},children:[o.jsx("span",{style:{fontSize:"10.5px",color:"var(--text-muted)",display:"block"},children:"Sand"}),o.jsxs("strong",{style:{fontSize:"13px",color:"#f8fafc"},children:[P.materials.sandBuckets," buckets"]})]}),o.jsxs("div",{style:{background:"var(--bg-input)",padding:"8px",borderRadius:"6px"},children:[o.jsx("span",{style:{fontSize:"10.5px",color:"var(--text-muted)",display:"block"},children:"Chipping"}),o.jsxs("strong",{style:{fontSize:"13px",color:"#f8fafc"},children:[P.materials.chippingBuckets," buckets"]})]})]}),o.jsxs("button",{type:"button",onClick:()=>s("production",P.item.id),className:"btn btn-primary btn-sm",style:{width:"100%"},children:[o.jsx(fc,{size:15}),o.jsxs("span",{children:["Open Production Form with ",P.item.name]})]})]})]}),o.jsxs("div",{className:"card",style:{padding:"14px"},children:[o.jsxs("h3",{style:{fontSize:"14px",fontWeight:800,marginBottom:"10px"},children:["Factory Mold Fleet Reference (",d.length," Products)"]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"6px",maxHeight:"400px",overflowY:"auto"},children:d.map(z=>{const T=lt(z),N=z.moldCount||T.moldCount||0,S=z.wastani_per_bag||T.wastaniPcsPerBag||50;return o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",background:"var(--bg-input)",borderRadius:"var(--radius-md)",fontSize:"12.5px"},children:[o.jsxs("div",{children:[o.jsx("span",{style:{fontWeight:700,color:"#f8fafc"},children:z.name}),o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)",marginLeft:"6px"},children:[z.category," ",T.size?`(${T.size})`:""]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsxs("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:[N," molds"]}),o.jsxs("span",{style:{fontSize:"11px",color:"var(--brand-400)",fontFamily:"var(--font-mono)"},children:["Wastani: ",S," pcs/bag"]})]})]},z.id)})})]})]}),L==="raw_materials"&&o.jsx(RawMaterialMasterView,{rawMaterials:f,addRawMaterialStock:m,recordRawMaterialBaselineBatch:Vt().recordRawMaterialBaselineBatch,updateRawMaterialMaster:Vt().updateRawMaterialMaster,addRawMaterial:Vt().addRawMaterial,removeRawMaterial:Vt().removeRawMaterial,resetAllRawMaterialsToZero:Vt().resetAllRawMaterialsToZero,onNavigate:s,staffName:Vt().staffName}),L==="inventory"&&o.jsxs(o.Fragment,{children:[
   o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:[
   filterMenuOpen&&o.jsx("div",{style:{position:"fixed",inset:0,zIndex:55},onClick:()=>setFilterMenuOpen(!1)}),
   o.jsxs("div",{style:{display:"flex",gap:"8px",position:"relative"},children:[
@@ -3531,492 +3235,8 @@ x1=({onNavigate:s})=>{
 ]}),
   k==="critical"&&o.jsxs("div",{className:"card-elevated",style:{padding:"16px",border:filteredOe.length>0?"1px solid rgba(239, 68, 68, 0.4)":"1px solid rgba(16, 185, 129, 0.3)",background:filteredOe.length>0?"linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(15, 23, 42, 0.8))":"linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.6))",borderRadius:"var(--radius-lg)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("div",{style:{width:"28px",height:"28px",borderRadius:"8px",background:filteredOe.length>0?"rgba(239, 68, 68, 0.2)":"rgba(16, 185, 129, 0.2)",display:"flex",alignItems:"center",justifyContent:"center",color:filteredOe.length>0?"#ef4444":"#10b981"},children:o.jsx(Cc,{size:16})}),o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"14px",fontWeight:800,color:"#f8fafc",margin:0},children:"Critical Replenishment Alert"}),o.jsx("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:"Pinned items below factory safety reorder threshold"})]})]}),o.jsxs("span",{className:"badge",style:{background:filteredOe.length>0?"rgba(239, 68, 68, 0.2)":"rgba(16, 185, 129, 0.2)",color:filteredOe.length>0?"#f87171":"#34d399",border:`1px solid ${filteredOe.length>0?"rgba(239, 68, 68, 0.4)":"rgba(16, 185, 129, 0.4)"}`,fontSize:"11px",fontWeight:700,padding:"3px 8px"},children:[filteredOe.length," ",filteredOe.length===1?"Deficit":"Deficits"]})]}),filteredOe.length===0?o.jsxs("div",{style:{padding:"12px",borderRadius:"8px",background:"rgba(16, 185, 129, 0.08)",display:"flex",alignItems:"center",gap:"8px",color:"#34d399",fontSize:"12.5px",fontWeight:600},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:"All product inventories are currently sitting safely above reorder levels."})]}):o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:filteredOe.map(z=>{const{item:T,total_pcs:N,total_sqm:S}=z,D=T.unit==="sqm",F=T.reorder_level||100,Z=D&&S!==null?S:N,se=Math.max(0,F-Z);return o.jsxs("div",{style:{padding:"10px 12px",borderRadius:"8px",background:"rgba(0, 0, 0, 0.4)",border:"1px solid rgba(239, 68, 68, 0.3)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontWeight:800,fontSize:"14px",color:"#f8fafc"},children:T.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"10px",padding:"1px 5px"},children:T.category})]}),o.jsxs("div",{style:{fontSize:"11.5px",color:"#f87171",marginTop:"2px",fontWeight:600},children:["Current: ",Z," ",T.unit," · Min Threshold: ",F," ",T.unit," (Deficit: -",D?se.toFixed(1):se," ",T.unit,")"]})]}),o.jsxs("button",{onClick:()=>s("production",T.id),className:"btn btn-primary btn-sm",style:{padding:"4px 10px",fontSize:"12px",height:"30px"},children:[o.jsx(vr,{size:13}),o.jsx("span",{children:"Produce Batch"})]})]},T.id)})})]}),
   k==="high_velocity"&&o.jsxs("div",{className:"card-elevated",style:{padding:"16px",border:"1px solid rgba(249, 115, 22, 0.35)",background:"linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(15, 23, 42, 0.8))",borderRadius:"var(--radius-lg)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("div",{style:{width:"28px",height:"28px",borderRadius:"8px",background:"rgba(249, 115, 22, 0.2)",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--brand-400)"},children:o.jsx(bx,{size:16})}),o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"14px",fontWeight:800,color:"#f8fafc",margin:0},children:"High-Velocity Operational Drivers"}),o.jsx("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:"Products dynamically ranked by volume turnover & factory throughput"})]})]}),o.jsxs("span",{className:"badge",style:{background:"rgba(249, 115, 22, 0.15)",color:"var(--brand-400)",border:"1px solid rgba(249, 115, 22, 0.3)",fontSize:"11px",fontWeight:700,padding:"3px 8px"},children:["Top ",filteredG.length," Movers"]})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))",gap:"8px"},children:filteredG.map((z,T)=>{const{item:N,production_volume_pcs:S,sales_volume_pcs:D,total_velocity_score:F,total_pcs:Z}=z,se=Ua(N);return o.jsxs("div",{style:{padding:"10px 12px",borderRadius:"8px",background:"rgba(0, 0, 0, 0.35)",border:"1px solid var(--border-subtle)",display:"flex",flexDirection:"column",justifyContent:"space-between",gap:"6px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsxs("span",{style:{fontSize:"11px",fontWeight:800,color:T===0?"#fbbf24":"var(--brand-400)",background:"rgba(255, 255, 255, 0.08)",padding:"1px 5px",borderRadius:"4px"},children:["#",T+1]}),o.jsx("span",{style:{fontSize:"13.5px",fontWeight:800,color:"#f8fafc"},children:N.name})]}),o.jsx("span",{style:{fontSize:"10.5px",color:"var(--text-muted)"},children:se})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:"11.5px"},children:[o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["Produced: ",o.jsx("strong",{style:{color:"#34d399"},children:S||0})]}),o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["Sold: ",o.jsx("strong",{style:{color:"#f87171"},children:D||0})]}),o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["Stock: ",o.jsx("strong",{style:{color:"#fff"},children:Z})]})]}),o.jsxs("div",{style:{display:"flex",gap:"6px",marginTop:"2px"},children:[o.jsxs("button",{onClick:()=>s("production",N.id),className:"btn btn-secondary btn-sm",style:{flex:1,padding:"3px",fontSize:"11px",height:"26px"},children:[o.jsx(vr,{size:12,color:"var(--brand-400)"}),o.jsx("span",{children:"Produce"})]}),o.jsxs("button",{onClick:()=>s("sales",N.id),className:"btn btn-secondary btn-sm",style:{flex:1,padding:"3px",fontSize:"11px",height:"26px",color:"#f87171"},children:[o.jsx(pp,{size:12,color:"#f87171"}),o.jsx("span",{children:"Sell"})]})]})]},N.id)})})]})
-]}),
-    L==="sales_record"&&o.jsx(DashboardSalesRecordView,{movements:mv,items:d,onNavigate:s}),
-    H&&o.jsx("div",{className:"modal-overlay",onClick:()=>ne(!1),children:o.jsxs("div",{className:"modal-content",onClick:z=>z.stopPropagation(),style:{padding:"20px",maxWidth:"440px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"},children:[o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"17px",fontWeight:800},children:"Restock Raw Materials"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Record delivery of cement, sand, aggregates, chemical or pigment"})]}),o.jsx("button",{type:"button",onClick:()=>ne(!1),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsxs("form",{onSubmit:y,style:{display:"flex",flexDirection:"column",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Select Material"}),o.jsx("select",{value:Y,onChange:z=>ae(z.target.value),className:"input-field",children:f.map(z=>o.jsxs("option",{value:z.key,children:[z.name," (Current: ",z.currentBalance," ",z.unit,")"]},z.key))})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Quantity Delivered / Added"}),o.jsx("input",{type:"number",min:"0.1",step:"any",required:!0,value:fe,onChange:z=>xe(z.target.value),className:"input-field mono",placeholder:"e.g. 100",autoFocus:!0})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Delivery Note / Supplier"}),o.jsx("input",{type:"text",value:Ie,onChange:z=>Be(z.target.value),className:"input-field",placeholder:"e.g. Twiga Cement 100 bags truck delivery..."})]}),o.jsxs("button",{type:"submit",className:"btn btn-primary btn-lg",style:{marginTop:"8px"},children:[o.jsx(pn,{size:18}),o.jsx("span",{children:"Save Restock Entry"})]})]})]})})]})},
-ProductionCapacityPlannerView = ({
-  items: a,
-  totalFactoryMolds: totalMolds,
-  todayMoldsInUse: moldsUsed,
-  overallMoldUtilizationPct: moldsPct,
-  onStartProduction
-}) => {
-  const [selectedProductId, setSelectedProductId] = B.useState(a[0]?.id || "");
-  const [targetPcsStr, setTargetPcsStr] = B.useState("200");
-  const [searchQuery, setSearchQuery] = B.useState("");
-  const [categoryFilter, setCategoryFilter] = B.useState("All");
-
-  const categories = B.useMemo(() => {
-    const set = new Set(a.map(item => item.category));
-    return ["All", ...Array.from(set)];
-  }, [a]);
-
-  const selectedItem = B.useMemo(() => {
-    return a.find(p => p.id === selectedProductId) || a[0];
-  }, [a, selectedProductId]);
-
-  const simData = B.useMemo(() => {
-    if (!selectedItem) return null;
-    const pcs = parseInt(targetPcsStr, 10) || 0;
-    const spec = lt(selectedItem);
-    const moldCount = selectedItem.moldCount || spec.moldCount || 50;
-    const wastani = selectedItem.wastani_per_bag || spec.wastaniPcsPerBag || 50;
-    const cyclesNeeded = moldCount > 0 ? Math.ceil(pcs / moldCount) : 1;
-    const isOverOneCycle = pcs > moldCount;
-    const utilizationPct = moldCount > 0 ? Math.min(100, Number(((pcs / moldCount) * 100).toFixed(1))) : 100;
-    const materials = Pa(selectedItem, pcs, "White");
-    let totalSqm = null;
-    if (selectedItem.unit === "sqm" && selectedItem.pcs_per_sqm && selectedItem.pcs_per_sqm > 0) {
-      totalSqm = Number((pcs / selectedItem.pcs_per_sqm).toFixed(2));
-    }
-
-    return {
-      item: selectedItem,
-      spec,
-      pcs,
-      totalSqm,
-      moldCount,
-      wastani,
-      cyclesNeeded,
-      isOverOneCycle,
-      utilizationPct,
-      materials
-    };
-  }, [selectedItem, targetPcsStr]);
-
-  const filteredItems = B.useMemo(() => {
-    return a.filter(item => {
-      const matchCat = categoryFilter === "All" || item.category === categoryFilter;
-      const matchQuery = !searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.category.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchQuery;
-    });
-  }, [a, categoryFilter, searchQuery]);
-
-  return o.jsxs("div", {
-    style: { display: "flex", flexDirection: "column", gap: "16px" },
-    children: [
-      // Fleet Turnaround KPI Hero Banner
-      o.jsxs("div", {
-        className: "card-elevated",
-        style: {
-          padding: "18px 20px",
-          background: "linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.95))",
-          border: "1px solid rgba(56, 189, 248, 0.35)",
-          boxShadow: "0 8px 30px rgba(56, 189, 248, 0.15)",
-          borderRadius: "var(--radius-lg)"
-        },
-        children: [
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "12px" },
-            children: [
-              o.jsxs("div", {
-                children: [
-                  o.jsxs("div", {
-                    style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "11px", color: "#38bdf8", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em" }, children: "🏭 Dodoma Factory Fleet Metrics" }),
-                      o.jsx("span", { className: "badge", style: { background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", fontSize: "10px", padding: "1px 6px" }, children: "Live Capacity" })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { fontSize: "clamp(18px, 4vw, 22px)", fontWeight: 800, color: "#f8fafc" },
-                    children: [
-                      (moldsUsed || 0).toLocaleString(),
-                      " / ",
-                      (totalMolds || 0).toLocaleString(),
-                      " molds cast today"
-                    ]
-                  })
-                ]
-              }),
-              o.jsxs("div", {
-                style: { textAlign: "right" },
-                children: [
-                  o.jsxs("div", { style: { fontSize: "28px", fontWeight: 900, color: "#38bdf8", fontFamily: "var(--font-mono)", lineHeight: 1 }, children: [moldsPct || 0, "%"] }),
-                  o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Daily fleet cast rate" })
-                ]
-              })
-            ]
-          }),
-          o.jsx("div", {
-            style: { width: "100%", height: "10px", background: "rgba(255, 255, 255, 0.08)", borderRadius: "6px", overflow: "hidden" },
-            children: o.jsx("div", {
-              style: {
-                width: Math.min(100, moldsPct || 0) + "%",
-                height: "100%",
-                background: "linear-gradient(90deg, #38bdf8, #f97316)",
-                borderRadius: "6px",
-                transition: "width 0.4s ease"
-              }
-            })
-          }),
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px", fontSize: "11.5px", color: "var(--text-muted)" },
-            children: [
-              o.jsx("span", { children: "Full turnaround takes 24 hours per mold cycle." }),
-              o.jsxs("span", { style: { color: "var(--brand-400)", fontWeight: 700 }, children: [Math.max(0, (totalMolds || 0) - (moldsUsed || 0)).toLocaleString(), " molds remaining available"] })
-            ]
-          })
-        ]
-      }),
-
-      // Interactive Order & Batch Capacity Simulator Card
-      o.jsxs("div", {
-        className: "card-elevated",
-        style: {
-          padding: "18px 20px",
-          border: "1px solid var(--border-subtle)",
-          background: "var(--bg-surface-card)",
-          borderRadius: "var(--radius-lg)"
-        },
-        children: [
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" },
-            children: [
-              o.jsx(qa, { size: 22, color: "var(--brand-400)" }),
-              o.jsxs("div", {
-                children: [
-                  o.jsx("h3", { style: { fontSize: "16px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Production Capacity & Mix Simulator" }),
-                  o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px", margin: 0 }, children: "Simulate order size to calculate physical mold cycles, curing turnaround, and raw materials needed." })
-                ]
-              })
-            ]
-          }),
-
-          // Simulator Inputs Grid
-          o.jsxs("div", {
-            style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "12px", marginBottom: "12px" },
-            children: [
-              o.jsxs("div", {
-                children: [
-                  o.jsx("label", { style: { fontSize: "11.5px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "5px" }, children: "1. Select Finished Product" }),
-                  o.jsx("select", {
-                    value: selectedProductId,
-                    onChange: e => setSelectedProductId(e.target.value),
-                    className: "input-field",
-                    style: { fontSize: "13px", fontWeight: 600, padding: "9px 12px" },
-                    children: a.map(item => o.jsxs("option", {
-                      value: item.id,
-                      children: [
-                        item.name,
-                        " (",
-                        item.category,
-                        " · ",
-                        item.moldCount || lt(item).moldCount,
-                        " molds)"
-                      ]
-                    }, item.id))
-                  })
-                ]
-              }),
-              o.jsxs("div", {
-                children: [
-                  o.jsx("label", { style: { fontSize: "11.5px", fontWeight: 700, color: "var(--text-secondary)", display: "block", marginBottom: "5px" }, children: "2. Target Output (pcs)" }),
-                  o.jsx("input", {
-                    type: "number",
-                    min: "1",
-                    step: "10",
-                    value: targetPcsStr,
-                    onChange: e => setTargetPcsStr(e.target.value),
-                    className: "input-field mono",
-                    style: { fontSize: "16px", fontWeight: 800, padding: "8px 12px" },
-                    placeholder: "200"
-                  })
-                ]
-              })
-            ]
-          }),
-
-          // Quick Presets
-          selectedItem && o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "16px" },
-            children: [
-              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)", marginRight: "4px" }, children: "Quick Quantity Presets:" }),
-              [100, 200, 500, selectedItem.moldCount || lt(selectedItem).moldCount].filter((v, idx, arr) => arr.indexOf(v) === idx && v > 0).map(val => o.jsx("button", {
-                key: val,
-                type: "button",
-                onClick: () => setTargetPcsStr(String(val)),
-                style: {
-                  padding: "3px 8px",
-                  borderRadius: "4px",
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  fontFamily: "var(--font-mono)",
-                  background: targetPcsStr === String(val) ? "var(--brand-500)" : "rgba(255, 255, 255, 0.06)",
-                  color: targetPcsStr === String(val) ? "#fff" : "var(--text-secondary)",
-                  border: "1px solid",
-                  borderColor: targetPcsStr === String(val) ? "var(--brand-500)" : "var(--border-subtle)",
-                  cursor: "pointer"
-                },
-                children: val === (selectedItem.moldCount || lt(selectedItem).moldCount) ? "Fleet Max (" + val + " pcs)" : "+" + val + " pcs"
-              }))
-            ]
-          }),
-
-          // Simulation Results Box
-          simData && o.jsxs("div", {
-            style: {
-              background: "var(--bg-surface)",
-              padding: "16px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--border-subtle)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px"
-            },
-            children: [
-              o.jsxs("div", {
-                style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" },
-                children: [
-                  o.jsxs("div", {
-                    children: [
-                      o.jsx("span", { style: { fontSize: "11.5px", color: "var(--text-muted)" }, children: "Physical Fleet Size:" }),
-                      o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", marginLeft: "6px" }, children: [simData.moldCount, " molds (", simData.spec.size || "Standard", ")"] })
-                    ]
-                  }),
-                  o.jsxs("span", {
-                    className: "badge " + (simData.isOverOneCycle ? "badge-warning" : "badge-success"),
-                    style: { fontSize: "11.5px", padding: "4px 10px", fontWeight: 700 },
-                    children: [
-                      simData.cyclesNeeded,
-                      " Casting ",
-                      simData.cyclesNeeded === 1 ? "Cycle (1 Day)" : "Cycles (" + simData.cyclesNeeded + " Days)"
-                    ]
-                  })
-                ]
-              }),
-
-              // Alert Banner
-              simData.isOverOneCycle ? o.jsxs("div", {
-                style: {
-                  padding: "10px 12px",
-                  borderRadius: "6px",
-                  background: "rgba(245, 158, 11, 0.12)",
-                  border: "1px solid rgba(245, 158, 11, 0.35)",
-                  color: "#fbbf24",
-                  fontSize: "12px",
-                  lineHeight: 1.4
-                },
-                children: [
-                  "⚠️ Target of ",
-                  o.jsx("strong", { children: simData.pcs + " pcs" }),
-                  " exceeds 1-day mold fleet capacity (",
-                  simData.moldCount,
-                  " molds). Production requires ",
-                  o.jsx("strong", { children: simData.cyclesNeeded + " daily cycles / curing days" }),
-                  "."
-                ]
-              }) : o.jsxs("div", {
-                style: {
-                  padding: "10px 12px",
-                  borderRadius: "6px",
-                  background: "rgba(16, 185, 129, 0.1)",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
-                  color: "#34d399",
-                  fontSize: "12px"
-                },
-                children: [
-                  "✅ Target fits within a single day's mold fleet (",
-                  simData.utilizationPct,
-                  "% 1-day mold utilization)."
-                ]
-              }),
-
-              // Raw Materials Needed Section
-              o.jsxs("div", {
-                children: [
-                  o.jsxs("div", {
-                    style: { fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", marginBottom: "8px" },
-                    children: [
-                      "🏗️ Raw Materials Needed for ",
-                      simData.pcs,
-                      " pcs ",
-                      simData.totalSqm ? "(" + simData.totalSqm + " sqm)" : "",
-                      ":"
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" },
-                    children: [
-                      o.jsxs("div", {
-                        style: { background: "var(--bg-input)", padding: "10px", borderRadius: "6px" },
-                        children: [
-                          o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)", display: "block" }, children: "Cement" }),
-                          o.jsxs("strong", { style: { fontSize: "14px", color: "var(--brand-400)", fontFamily: "var(--font-mono)" }, children: [simData.materials.cementBags, " bags"] }),
-                          o.jsxs("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginTop: "2px" }, children: ["Wastani: ", simData.wastani, " pcs/bag"] })
-                        ]
-                      }),
-                      o.jsxs("div", {
-                        style: { background: "var(--bg-input)", padding: "10px", borderRadius: "6px" },
-                        children: [
-                          o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)", display: "block" }, children: "Sand" }),
-                          o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [simData.materials.sandBuckets, " buckets"] }),
-                          o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginTop: "2px" }, children: "Ndoo za mchanga" })
-                        ]
-                      }),
-                      o.jsxs("div", {
-                        style: { background: "var(--bg-input)", padding: "10px", borderRadius: "6px" },
-                        children: [
-                          o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)", display: "block" }, children: "Chipping / Kokoto" }),
-                          o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [simData.materials.chippingBuckets, " buckets"] }),
-                          o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginTop: "2px" }, children: "Kokoto safi" })
-                        ]
-                      })
-                    ]
-                  })
-                ]
-              }),
-
-              // Direct Action: Start Batch Production with this Product!
-              o.jsxs("button", {
-                type: "button",
-                onClick: () => onStartProduction(simData.item.id),
-                className: "btn btn-primary",
-                style: { width: "100%", padding: "10px 16px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "4px" },
-                children: [
-                  o.jsx(fc, { size: 16 }),
-                  o.jsxs("span", { children: ["Open Batch Production Form for ", simData.item.name] })
-                ]
-              })
-            ]
-          })
-        ]
-      }),
-
-      // Factory Mold Fleet Reference Directory
-      o.jsxs("div", {
-        className: "card",
-        style: { padding: "16px", display: "flex", flexDirection: "column", gap: "12px" },
-        children: [
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" },
-            children: [
-              o.jsxs("h3", { style: { fontSize: "15px", fontWeight: 800, margin: 0, color: "#f8fafc" }, children: ["Factory Mold Fleet Directory (", a.length, " Products)"] }),
-              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Stumarcot Precast Molds Master" })
-            ]
-          }),
-
-          // Search and Category Tabs
-          o.jsxs("div", {
-            style: { display: "flex", flexDirection: "column", gap: "8px" },
-            children: [
-              o.jsxs("div", {
-                className: "search-wrapper",
-                children: [
-                  o.jsx(ii, { className: "search-icon", size: 15 }),
-                  o.jsx("input", {
-                    type: "text",
-                    className: "input-field search-input",
-                    placeholder: "Search mold catalog by product or category...",
-                    value: searchQuery,
-                    onChange: e => setSearchQuery(e.target.value)
-                  })
-                ]
-              }),
-              o.jsx("div", {
-                style: { display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "2px" },
-                children: categories.map(cat => o.jsx("button", {
-                  key: cat,
-                  type: "button",
-                  onClick: () => setCategoryFilter(cat),
-                  style: {
-                    padding: "3px 9px",
-                    borderRadius: "16px",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    border: "1px solid",
-                    borderColor: categoryFilter === cat ? "var(--brand-500)" : "var(--border-subtle)",
-                    background: categoryFilter === cat ? "rgba(249, 115, 22, 0.15)" : "var(--bg-input)",
-                    color: categoryFilter === cat ? "var(--brand-400)" : "var(--text-secondary)",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap"
-                  },
-                  children: cat
-                }))
-              })
-            ]
-          }),
-
-          // Mold Fleet List
-          o.jsx("div", {
-            style: { display: "flex", flexDirection: "column", gap: "8px", maxHeight: "380px", overflowY: "auto" },
-            children: filteredItems.map(item => {
-              const spec = lt(item);
-              const mCount = item.moldCount || spec.moldCount || 0;
-              const wastani = item.wastani_per_bag || spec.wastaniPcsPerBag || 50;
-
-              return o.jsxs("div", {
-                style: {
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "10px 12px",
-                  background: "var(--bg-surface-elevated)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
-                  fontSize: "13px"
-                },
-                children: [
-                  o.jsxs("div", {
-                    children: [
-                      o.jsxs("div", {
-                        style: { display: "flex", alignItems: "center", gap: "6px" },
-                        children: [
-                          o.jsx("strong", { style: { color: "#f8fafc" }, children: item.name }),
-                          o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10px", padding: "1px 5px" }, children: item.category })
-                        ]
-                      }),
-                      o.jsxs("div", {
-                        style: { fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" },
-                        children: [
-                          spec.size ? "Size: " + spec.size + " • " : "",
-                          "Wastani: ",
-                          o.jsx("span", { style: { color: "var(--brand-400)", fontFamily: "var(--font-mono)" }, children: wastani + " pcs/bag" })
-                        ]
-                      })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", alignItems: "center", gap: "8px" },
-                    children: [
-                      o.jsxs("span", {
-                        className: "badge badge-neutral",
-                        style: { fontSize: "11.5px", padding: "3px 8px", fontFamily: "var(--font-mono)", fontWeight: 700 },
-                        children: [mCount, " molds"]
-                      }),
-                      o.jsx("button", {
-                        type: "button",
-                        onClick: () => {
-                          setSelectedProductId(item.id);
-                          setTargetPcsStr(String(mCount || 200));
-                        },
-                        style: {
-                          padding: "4px 8px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          background: "rgba(56, 189, 248, 0.12)",
-                          border: "1px solid rgba(56, 189, 248, 0.3)",
-                          color: "#38bdf8",
-                          cursor: "pointer"
-                        },
-                        children: "Simulate"
-                      })
-                    ]
-                  })
-                ]
-              }, item.id);
-            })
-          })
-        ]
-      })
-    ]
-  });
-},
-
-_1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
-  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f, totalFactoryMolds:totalMolds, todayMoldsInUse:moldsUsed, overallMoldUtilizationPct:moldsPct} = Vt();
-  const [prodTab, setProdTab] = B.useState("batch_logging");
+]}),H&&o.jsx("div",{className:"modal-overlay",onClick:()=>ne(!1),children:o.jsxs("div",{className:"modal-content",onClick:z=>z.stopPropagation(),style:{padding:"20px",maxWidth:"440px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"},children:[o.jsxs("div",{children:[o.jsx("h3",{style:{fontSize:"17px",fontWeight:800},children:"Restock Raw Materials"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Record delivery of cement, sand, aggregates, chemical or pigment"})]}),o.jsx("button",{type:"button",onClick:()=>ne(!1),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsxs("form",{onSubmit:y,style:{display:"flex",flexDirection:"column",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Select Material"}),o.jsx("select",{value:Y,onChange:z=>ae(z.target.value),className:"input-field",children:f.map(z=>o.jsxs("option",{value:z.key,children:[z.name," (Current: ",z.currentBalance," ",z.unit,")"]},z.key))})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Quantity Delivered / Added"}),o.jsx("input",{type:"number",min:"0.1",step:"any",required:!0,value:fe,onChange:z=>xe(z.target.value),className:"input-field mono",placeholder:"e.g. 100",autoFocus:!0})]}),o.jsxs("div",{children:[o.jsx("label",{style:{fontSize:"11.5px",color:"var(--text-muted)",display:"block",marginBottom:"4px"},children:"Delivery Note / Supplier"}),o.jsx("input",{type:"text",value:Ie,onChange:z=>Be(z.target.value),className:"input-field",placeholder:"e.g. Twiga Cement 100 bags truck delivery..."})]}),o.jsxs("button",{type:"submit",className:"btn btn-primary btn-lg",style:{marginTop:"8px"},children:[o.jsx(pn,{size:18}),o.jsx("span",{children:"Save Restock Entry"})]})]})]})})]})},_1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
+  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f} = Vt();
   const m = B.useMemo(() => new Date().toISOString().split("T")[0], []);
   const [g, _] = B.useState(m);
   // Point 3: all input boxes blank by default
@@ -4867,18 +4087,18 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 children: [
                   o.jsx("h1", {
                     style: { fontSize: "clamp(18px, 4vw, 22px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#f8fafc", margin: 0 },
-                    children: prodTab === "capacity_planner" ? "Production Capacity Planner" : "Batch Production Logging"
+                    children: "Batch Production Logging"
                   }),
                   o.jsx("span", {
                     className: "badge",
                     style: { background: "rgba(249, 115, 22, 0.15)", border: "1px solid rgba(249, 115, 22, 0.35)", color: "var(--brand-400)", fontSize: "11px", fontWeight: 700, padding: "3px 8px" },
-                    children: prodTab === "capacity_planner" ? "Fleet & Mix Engine" : "Adaptive Recipe Engine"
+                    children: "Adaptive Recipe Engine"
                   })
                 ]
               }),
               o.jsx("p", {
                 style: { fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" },
-                children: prodTab === "capacity_planner" ? "Simulate mold turnaround cycles, production limits & material demand" : "Dynamic proportional recipe scaling & multi-output residual calibration"
+                children: "Dynamic proportional recipe scaling & multi-output residual calibration"
               })
             ]
           }),
@@ -4896,83 +4116,8 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           })
         ]
       }),
-      // PRODUCTION TOP TABS: Batch Logging vs Capacity Planner
-      o.jsxs("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "6px",
-          background: "var(--bg-surface-elevated)",
-          padding: "4px",
-          borderRadius: "var(--radius-md)",
-          border: "1px solid var(--border-subtle)"
-        },
-        children: [
-          o.jsxs("button", {
-            type: "button",
-            onClick: () => setProdTab("batch_logging"),
-            style: {
-              padding: "9px 12px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "13px",
-              fontWeight: 700,
-              background: prodTab === "batch_logging" ? "var(--brand-500)" : "transparent",
-              color: prodTab === "batch_logging" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "7px"
-            },
-            children: [
-              o.jsx(fc, { size: 15 }),
-              o.jsx("span", { children: "Batch Logging" })
-            ]
-          }),
-          o.jsxs("button", {
-            type: "button",
-            onClick: () => setProdTab("capacity_planner"),
-            style: {
-              padding: "9px 12px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "13px",
-              fontWeight: 700,
-              background: prodTab === "capacity_planner" ? "var(--brand-500)" : "transparent",
-              color: prodTab === "capacity_planner" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "7px"
-            },
-            children: [
-              o.jsx(qa, { size: 15 }),
-              o.jsx("span", { children: "Capacity Planner" })
-            ]
-          })
-        ]
-      }),
 
-      // CAPACITY PLANNER VIEW
-      prodTab === "capacity_planner" && o.jsx(ProductionCapacityPlannerView, {
-        items: a,
-        totalFactoryMolds: totalMolds,
-        todayMoldsInUse: moldsUsed,
-        overallMoldUtilizationPct: moldsPct,
-        onStartProduction: (itemId) => {
-          E(itemId);
-          setProdTab("batch_logging");
-        }
-      }),
-
-      // BATCH LOGGING VIEW
-      prodTab === "batch_logging" && o.jsxs(o.Fragment, {
-        children: [
-          y && o.jsxs("div", {
+      y && o.jsxs("div", {
         className: "card",
         style: { background: "linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.95))", borderColor: "rgba(16, 185, 129, 0.5)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 8px 24px rgba(16, 185, 129, 0.2)" },
         children: [
@@ -5902,11 +5047,9 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             ]
           })
         ]
-      })
-        ]
       }),
 
-// AUDIT & INVENTORY VERIFICATION POPUP MODAL
+      // AUDIT & INVENTORY VERIFICATION POPUP MODAL
       showAuditModal && o.jsx("div", {
         className: "modal-overlay",
         onClick: () => setShowAuditModal(!1),
@@ -6227,9 +5370,8 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
       })
     ]
   });
-},
-b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
-  const {items:a, movements:c, addMovementsBatch:u, getStockSummary:d, staffName:f, adminSettings:adm, resetSales} = Vt();
+},b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
+  const {items:a, movements:c, addMovementsBatch:u, getStockSummary:d, staffName:f, adminSettings:adm} = Vt();
   const m = B.useMemo(() => new Date().toISOString().split("T")[0], []);
 
   // Persistent In-Memory State: survives tab switches, but resets on whole app/web refresh
@@ -6298,29 +5440,6 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   const [showConfirmModal, setShowConfirmModal] = B.useState(false);
   const [isSubmitting, setIsSubmitting] = B.useState(false);
   const [successBanner, setSuccessBanner] = B.useState(null);
-
-  const handleResetSale = async () => {
-    const confirmed = window.confirm("Are you sure you want to RESET Sales?\n\nThis will clear current customer/product inputs, cart, staged sales, and all recorded test sales dispatches.");
-    if (!confirmed) return;
-    setCustomerName("");
-    setCustomerContacts("");
-    setDeliverySite("");
-    setCustomerTin("");
-    setSelectedItemId("");
-    setSelectedColor("White");
-    setSellingPriceInput("");
-    setIsCustomPrice(false);
-    setQuantityInput("");
-    setAddedProducts([]);
-    setStagedSales([]);
-    setEditingSaleId(null);
-    setSuccessBanner(null);
-    if (typeof window !== "undefined") {
-      window._stumarcot_sales_draft = {};
-    }
-    if (resetSales) await resetSales();
-    window.alert("✓ Sales inputs and test dispatch records have been reset.");
-  };
 
   // Persist state in memory across tab switches (cleared when whole web app reloads)
   B.useEffect(() => {
@@ -6910,27 +6029,14 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             ]
           }),
           o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", gap: "8px" },
+            style: { display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-surface-elevated)", padding: "6px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-subtle)" },
             children: [
-              o.jsxs("button", {
-                type: "button",
-                onClick: handleResetSale,
-                className: "btn btn-ghost btn-sm",
-                style: { border: "1px solid rgba(239, 68, 68, 0.4)", color: "#ef4444", padding: "6px 12px", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", gap: "5px", borderRadius: "var(--radius-md)" },
-                title: "Reset sale inputs and test dispatches",
-                children: [o.jsx("span", { children: "🔄" }), o.jsx("span", { children: "Reset Sale" })]
-              }),
-              o.jsxs("div", {
-                style: { display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-surface-elevated)", padding: "6px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-subtle)" },
-                children: [
-                  o.jsx(ni, { size: 15, color: "#f87171" }),
-                  o.jsx("input", {
-                    type: "date",
-                    value: saleDate,
-                    onChange: e => setSaleDate(e.target.value),
-                    style: { background: "transparent", border: "none", color: "#f8fafc", fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 600, outline: "none" }
-                  })
-                ]
+              o.jsx(ni, { size: 15, color: "#f87171" }),
+              o.jsx("input", {
+                type: "date",
+                value: saleDate,
+                onChange: e => setSaleDate(e.target.value),
+                style: { background: "transparent", border: "none", color: "#f8fafc", fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 600, outline: "none" }
               })
             ]
           })
@@ -8059,15 +7165,9 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
       })
     ]
   });
-},w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a,resetProductBaseline}=Vt(),handleResetBaseline=async()=>{const confirmed=window.confirm("Are you sure you want to RESET all product baseline opening balances?\n\nThis will clear all product baseline records and entries so you can test baselining again from scratch.");if(!confirmed)return;m({});L(null);if(resetProductBaseline)await resetProductBaseline();window.alert("✓ Product baseline opening balances have been reset.");},c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsxs("button",{type:"button",onClick:handleResetBaseline,className:"btn btn-ghost btn-sm",style:{border:"1px solid rgba(239, 68, 68, 0.4)",color:"#ef4444",padding:"9px 13px",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Reset all product baseline opening balances for testing",children:[o.jsx("span",{children:"🔄"}),o.jsx("span",{children:"Reset Baseline"})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r}=Vt(),[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px",flexShrink:0},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",justifyContent:"flex-end",marginTop:"16px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})})]})},k1=()=>{
+},w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a}=Vt(),c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r}=Vt(),[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px",flexShrink:0},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",justifyContent:"flex-end",marginTop:"16px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})})]})},k1=()=>{
   var T,N;
-  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, resetLedger} = Vt();
-  const handleResetLedger = async () => {
-    const confirmed = window.confirm("Are you sure you want to RESET the ledger?\n\nThis will clear all movement records (finished goods & raw materials) from the ledger so you can test from a clean slate.");
-    if (!confirmed) return;
-    if (resetLedger) await resetLedger();
-    window.alert("✓ Ledger log has been reset.");
-  };
+  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u} = Vt();
   const [d, f] = B.useState("finished_goods");
   const [m, g] = B.useState("");
   const [_, x] = B.useState("all");
@@ -8317,26 +7417,13 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
               o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Immutable history of finished goods movements & raw material auto-deductions" })
             ]
           }),
-          o.jsxs("div", {
-            style: { display: "flex", alignItems: "center", gap: "8px" },
+          o.jsxs("button", {
+            onClick: () => W(!0),
+            className: "btn btn-secondary btn-sm",
+            style: { gap: "4px" },
             children: [
-              o.jsxs("button", {
-                type: "button",
-                onClick: handleResetLedger,
-                className: "btn btn-ghost btn-sm",
-                style: { border: "1px solid rgba(239, 68, 68, 0.4)", color: "#ef4444", padding: "6px 10px", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", gap: "5px", borderRadius: "var(--radius-md)" },
-                title: "Reset all ledger records for testing",
-                children: [o.jsx("span", { children: "🔄" }), o.jsx("span", { children: "Reset Ledger" })]
-              }),
-              o.jsxs("button", {
-                onClick: () => W(!0),
-                className: "btn btn-secondary btn-sm",
-                style: { gap: "4px" },
-                children: [
-                  o.jsx(vr, { size: 14, color: "var(--brand-400)" }),
-                  o.jsx("span", { children: "Dispatch / Adjust" })
-                ]
-              })
+              o.jsx(vr, { size: 14, color: "var(--brand-400)" }),
+              o.jsx("span", { children: "Dispatch / Adjust" })
             ]
           })
         ]

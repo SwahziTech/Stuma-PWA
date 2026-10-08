@@ -1,5 +1,4 @@
 const fs = require('fs');
 const content = fs.readFileSync('assets/index-hgjhj-0G.js', 'utf8');
 
-const vtIdx = content.indexOf('Vt=');
-console.log(content.slice(vtIdx - 2000, vtIdx));
+console.log(content.slice(918500, 921000));

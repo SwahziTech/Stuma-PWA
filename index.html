@@ -43,8 +43,8 @@
       })();
     </script>
     
-    <script type="module" crossorigin src="./assets/index-hgjhj-0G.js?v=1791039542514"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BATisU_-.css">
+    <script type="module" src="./assets/index-hgjhj-0G.js?v=1791385730456"></script>
+    <link rel="stylesheet" href="./assets/index-BATisU_-.css">
   </head>
   <body>
     <div id="root"></div>
@@ -55,6 +55,7 @@
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('./service-worker.js', { scope: './' })
             .then(function(registration) {
+              registration.update();
               console.log('[PWA] ServiceWorker registered successfully with scope:', registration.scope);
             })
             .catch(function(error) {
