@@ -4,7 +4,7 @@
 
 
 
-## Glossary
+## Glossary.
 
 |Term|Meaning|
 |-|-|
