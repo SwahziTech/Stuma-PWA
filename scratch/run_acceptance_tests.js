@@ -116,8 +116,8 @@ assert(bundleCode.includes('stumarcot_pending_movements_queue'), 'Bundle contain
 assert(bundleCode.includes('fetchRawMaterialsCloud'), 'Bundle contains Raw Materials cloud fetching');
 assert(bundleCode.includes('syncRawMovementsCloud'), 'Bundle contains Raw Material Movements cloud persistence');
 
-const swMatch = swCode.match(/const CACHE_NAME = ['"]stumarcot-pwa-v2\.1\.0-(\d+)['"];/);
-assert(swMatch !== null, 'Service Worker cache version bumped to v2.1.0');
+const swMatch = swCode.match(/const CACHE_NAME = ['"]stumarcot-pwa-v2\.1\.\d+-(\d+)['"];/);
+assert(swMatch !== null, 'Service Worker cache version bumped to v2.1.x');
 
 if (swMatch) {
   const swTimestamp = swMatch[1];

@@ -1369,7 +1369,7 @@ const Bv=({children:s})=>{
   });
 };
 
-Vt=()=>{const s=B.useContext(Wp);if(!s)throw new Error("useApp must be used within an AppProvider");return s};/**
+const Vt=()=>{const s=B.useContext(Wp);if(!s)throw new Error("useApp must be used within an AppProvider");return s};/**
  * @license lucide-react v1.41.0 - ISC
  *
  * This source code is licensed under the ISC license.
