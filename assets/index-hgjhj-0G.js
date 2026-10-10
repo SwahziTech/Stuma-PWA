@@ -1348,6 +1348,49 @@ const Bv=({children:s})=>{
     }return removedMovs;
   },[]);
 
+  const deleteRawMovement = B.useCallback(async rawMovId => {
+    let removed = null;
+    L(prev => {
+      removed = prev.find(m => m.id === rawMovId);
+      return prev.filter(m => m.id !== rawMovId);
+    });
+    if (removed) {
+      if (removed.delta && removed.delta !== 0) {
+        k(prev => prev.map(mat => {
+          const matched = mat.key === removed.materialKey || (mat.legacyKeys && mat.legacyKeys.includes(removed.materialKey));
+          if (matched) {
+            const newBal = Math.max(0, Number((mat.currentBalance - removed.delta).toFixed(2)));
+            return {
+              ...mat,
+              currentBalance: newBal,
+              lastUpdated: new Date().toISOString()
+            };
+          }
+          return mat;
+        }));
+      }
+      try {
+        const raw = localStorage.getItem(Zl);
+        if (raw) {
+          const list = JSON.parse(raw);
+          localStorage.setItem(Zl, JSON.stringify(list.filter(m => m.id !== rawMovId)));
+        }
+      } catch(e) {}
+      const client = Ht();
+      if (client) {
+        try {
+          Y(!0);
+          await client.from("raw_movements").delete().eq("id", rawMovId);
+          Y(!1);
+        } catch(e) {
+          Y(!1);
+          console.warn("Supabase delete raw_movement error:", e);
+        }
+      }
+    }
+    return !0;
+  }, []);
+
   // Calculation of active stock balances by color & reorder status
   const y = B.useMemo(()=>{
     const V = new Map;
@@ -1454,6 +1497,7 @@ const Bv=({children:s})=>{
       deleteItem: deleteItem,
       removeItem: deleteItem,
       deleteMovements: deleteMovements,
+      deleteRawMovement: deleteRawMovement,
       refreshData: Ie,
       stockSummaries: y,
       getStockSummary: O,
@@ -9338,7 +9382,50 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   });
 },w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a,resetProductBaseline,deleteMovements}=Vt(),handleUndoPreviousEntries=async()=>{const M=t.filter(ee=>ee.type==="opening_balance");if(M.length===0){if(Object.keys(f).some(ee=>f[ee]&&parseFloat(f[ee])>0)){const ee=window.confirm("You have unsaved baseline entries typed in the form.\n\nDo you want to undo/clear these unsaved inputs?");ee&&(m({}),window.alert("✓ Unsaved baseline inputs cleared."))}else window.alert("No previous baseline entries found to undo.");return}const ee=M[M.length-1];let le=[];ee.batch_id?le=M.filter(he=>he.batch_id===ee.batch_id):ee.created_at&&(le=M.filter(he=>he.created_at===ee.created_at)),le.length===0&&(le=[ee]);const he=Array.from(new Set(le.map(Pe=>{const oe=s.find(ue=>ue.id===Pe.item_id);return oe?oe.name:"Product"}))).join(", "),Pe=window.confirm(`Undo previous baseline entry for:\n${he} (${le.length} ${le.length===1?"record":"records"})?\n\nThis will remove the baseline record and restore the values into the form inputs for editing.`);if(!Pe)return;deleteMovements&&await deleteMovements({ids:le.map(oe=>oe.id),batch_id:ee.batch_id}),m(oe=>{const ue={...oe};for(const P of le){const y=`${P.item_id}_${P.color||"Standard"}`,O=g[P.item_id]||"pcs",z=O==="sqm"&&P.quantity_sqm!=null?P.quantity_sqm:P.quantity_pcs;ue[y]=String(z)}return ue}),L(null),window.alert(`✓ Undid previous baseline entries for ${he}.\n\nValues have been restored to the form inputs for editing.`)},handleUndoItemBaseline=async M=>{const ee=t.filter(le=>le.type==="opening_balance"&&le.item_id===M.id);if(ee.length===0)return;const le=window.confirm(`Undo baseline entry for "${M.name}"?\n\nThis will remove its baseline record and restore its values into the form so you can edit it.`);if(!le)return;deleteMovements&&await deleteMovements(ee.map(he=>he.id)),m(he=>{const Pe={...he};for(const oe of ee){const G=`${oe.item_id}_${oe.color||"Standard"}`,ue=g[oe.item_id]||"pcs",P=ue==="sqm"&&oe.quantity_sqm!=null?oe.quantity_sqm:oe.quantity_pcs;Pe[G]=String(P)}return Pe}),window.alert(`✓ Baseline entry for "${M.name}" removed and restored to form inputs.`)},handleResetBaseline=async()=>{const confirmed=window.confirm("Are you sure you want to RESET all product baseline opening balances?\n\nThis will clear all product baseline records and entries so you can test baselining again from scratch.");if(!confirmed)return;m({});L(null);if(resetProductBaseline)await resetProductBaseline();window.alert("✓ Product baseline opening balances have been reset.");},c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:handleResetBaseline,className:"btn btn-ghost btn-sm",style:{border:"1px solid rgba(239, 68, 68, 0.4)",color:"#ef4444",padding:"9px 13px",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Reset all product baseline opening balances for testing",children:[o.jsx("span",{children:"🔄"}),o.jsx("span",{children:"Reset Baseline"})]}),o.jsxs("button",{type:"button",onClick:handleUndoPreviousEntries,className:"btn btn-secondary btn-sm",style:{border:"1px solid rgba(249, 115, 22, 0.4)",color:"var(--brand-400)",background:"rgba(249, 115, 22, 0.08)",padding:"9px 13px",fontSize:"13px",fontWeight:700,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Undo previous baseline entries and restore values to inputs",children:[o.jsx(Mx,{size:15}),o.jsx("span",{children:"Undo Previous Entries"})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"}),o.jsxs("button",{type:"button",onClick:()=>handleUndoItemBaseline(oe),className:"btn btn-ghost btn-sm",style:{padding:"2px 7px",fontSize:"11px",color:"var(--brand-400)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"4px",display:"inline-flex",alignItems:"center",gap:"3px"},title:`Undo baseline entry for ${oe.name}`,children:[o.jsx(Mx,{size:11}),o.jsx("span",{children:"Undo"})]})]})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r,deleteItem}=Vt(),handleDeleteProduct=async M=>{if(!M)return;const ee=window.confirm(`Are you sure you want to delete "${M.name}"?\n\nThis will permanently remove it from the product catalog.`);if(!ee)return;deleteItem&&await deleteItem(M.id),x&&x.id===M.id&&(b(null),E(!1)),ne(`Product "${M.name}" deleted successfully.`)},[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",flexShrink:0},children:[o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px"},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]}),o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(M),className:"btn btn-ghost btn-sm",style:{padding:"6px 10px",fontSize:"12px",color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.3)",borderRadius:"var(--radius-md)",display:"flex",alignItems:"center",gap:"4px"},title:`Delete ${M.name}`,children:[o.jsx(Yp,{size:13}),o.jsx("span",{children:"Delete"})]})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",alignItems:"center",justifyContent:"space-between",marginTop:"16px",flexWrap:"wrap"},children:[x?o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(x),className:"btn btn-ghost",style:{color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.4)",display:"flex",alignItems:"center",gap:"6px",fontSize:"13px",padding:"8px 12px"},children:[o.jsx(Yp,{size:14}),o.jsx("span",{children:"Delete Product"})]}):o.jsx("div",{}),o.jsxs("div",{style:{display:"flex",gap:"10px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})]})})]})},k1=()=>{
   var T,N;
-  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, deleteMovements} = Vt();
+  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, deleteMovements, deleteRawMovement} = Vt();
+  const handleDeleteMovement = async (mov) => {
+    if (!mov) return;
+    const item = Pe.get(mov.item_id);
+    const itemName = item ? item.name : (mov.item_id || "Product");
+    const isProduction = mov.type === "production_in";
+    const batchRelated = isProduction && mov.batch_id ? s.filter(m => m.batch_id === mov.batch_id) : [mov];
+    const typeLabel = isProduction ? "Production" 
+                    : (mov.type === "dispatch_out" || mov.type === "sale_out") ? "Sales Dispatch" 
+                    : mov.type === "opening_balance" ? "Baseline" 
+                    : "Movement";
+    const detailMsg = batchRelated.length > 1 
+      ? `${itemName} + ${batchRelated.length - 1} related batch records (${batchRelated.reduce((sum, m) => sum + (m.quantity_pcs || 0), 0)} pcs on ${mov.date})`
+      : `${itemName} (${mov.quantity_pcs} pcs on ${mov.date})`;
+    const confirmed = window.confirm(
+      `Delete this ${typeLabel} entry?\n\n` +
+      `${detailMsg}\n\n` +
+      `This will remove the transaction from the Unified Ledger and revert inventory balances.`
+    );
+    if (!confirmed) return;
+    if (deleteMovements) {
+      await deleteMovements({ ids: batchRelated.map(m => m.id), batch_id: mov.batch_id });
+    }
+    window.alert(`✓ Successfully deleted ${typeLabel} entry for ${itemName}.`);
+  };
+
+  const handleDeleteRawMovement = async (rawMov) => {
+    if (!rawMov) return;
+    const mat = oe.get(rawMov.materialKey);
+    const matName = mat ? mat.name : rawMov.materialKey;
+    const confirmed = window.confirm(
+      `Delete this Raw Material log?\n\n` +
+      `Material: ${matName}\n` +
+      `Quantity: ${rawMov.delta > 0 ? "+" : ""}${rawMov.delta} ${rawMov.unit}\n` +
+      `Date: ${rawMov.date}\n\n` +
+      `This will remove the record from the raw materials ledger.`
+    );
+    if (!confirmed) return;
+    if (deleteRawMovement) {
+      await deleteRawMovement(rawMov.id);
+    }
+    window.alert(`✓ Successfully deleted raw material log for ${matName}.`);
+  };
+
   const handleUndo = async () => {
     if (!s || s.length === 0) {
       window.alert("No recorded ledger entries found to undo.");
@@ -10005,10 +10092,41 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                   ]
                 }),
                 o.jsxs("div", {
-                  style: { textAlign: "right", flexShrink: 0 },
+                  style: { display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 },
                   children: [
-                    o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: F ? "#34d399" : "#f87171" }, children: [F ? "+" : "", S.quantity_pcs, " pcs"] }),
-                    S.quantity_sqm !== null && o.jsxs("div", { style: { fontSize: "12px", color: "var(--brand-400)", fontWeight: 600 }, children: [F ? "+" : "-", Math.abs(S.quantity_sqm), " sqm"] })
+                    o.jsxs("div", {
+                      style: { textAlign: "right" },
+                      children: [
+                        o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: F ? "#34d399" : "#f87171" }, children: [F ? "+" : "", S.quantity_pcs, " pcs"] }),
+                        S.quantity_sqm !== null && o.jsxs("div", { style: { fontSize: "12px", color: "var(--brand-400)", fontWeight: 600 }, children: [F ? "+" : "-", Math.abs(S.quantity_sqm), " sqm"] })
+                      ]
+                    }),
+                    o.jsxs("button", {
+                      type: "button",
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        handleDeleteMovement(S);
+                      },
+                      className: "btn btn-ghost btn-sm",
+                      style: {
+                        padding: "6px 8px",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.35)",
+                        borderRadius: "6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        background: "rgba(239, 68, 68, 0.08)",
+                        cursor: "pointer"
+                      },
+                      title: "Delete this ledger entry",
+                      children: [
+                        o.jsx(Yp, { size: 13 }),
+                        o.jsx("span", { children: "Delete" })
+                      ]
+                    })
                   ]
                 })
               ]
@@ -10068,9 +10186,40 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                     })
                   ]
                 }),
-                o.jsx("div", {
-                  style: { textAlign: "right" },
-                  children: o.jsxs("span", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: isBase ? "#38bdf8" : (F ? "#34d399" : "#f87171") }, children: [F ? "+" : "", S.delta, " ", S.unit] })
+                o.jsxs("div", {
+                  style: { display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 },
+                  children: [
+                    o.jsx("div", {
+                      style: { textAlign: "right" },
+                      children: o.jsxs("span", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: isBase ? "#38bdf8" : (F ? "#34d399" : "#f87171") }, children: [F ? "+" : "", S.delta, " ", S.unit] })
+                    }),
+                    o.jsxs("button", {
+                      type: "button",
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        handleDeleteRawMovement(S);
+                      },
+                      className: "btn btn-ghost btn-sm",
+                      style: {
+                        padding: "6px 8px",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.35)",
+                        borderRadius: "6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        background: "rgba(239, 68, 68, 0.08)",
+                        cursor: "pointer"
+                      },
+                      title: "Delete this raw material log",
+                      children: [
+                        o.jsx(Yp, { size: 13 }),
+                        o.jsx("span", { children: "Delete" })
+                      ]
+                    })
+                  ]
                 })
               ]
             }, S.id);
@@ -10176,9 +10325,25 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 })
               ]
             }),
-            o.jsx("div", {
-              style: { marginTop: "18px", textAlign: "right" },
-              children: o.jsx("button", { type: "button", onClick: () => he(null), className: "btn btn-secondary", style: { width: "100%" }, children: "Close Details" })
+            o.jsxs("div", {
+              style: { marginTop: "18px", display: "flex", gap: "10px" },
+              children: [
+                o.jsxs("button", {
+                  type: "button",
+                  onClick: () => {
+                    const toDelete = le;
+                    he(null);
+                    handleDeleteMovement(toDelete);
+                  },
+                  className: "btn btn-ghost",
+                  style: { color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.35)", background: "rgba(239, 68, 68, 0.08)", display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", fontSize: "13px", fontWeight: 700 },
+                  children: [
+                    o.jsx(Yp, { size: 15 }),
+                    o.jsx("span", { children: "Delete Entry" })
+                  ]
+                }),
+                o.jsx("button", { type: "button", onClick: () => he(null), className: "btn btn-secondary", style: { flex: 1 }, children: "Close Details" })
+              ]
             })
           ]
         })

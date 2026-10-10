@@ -40,27 +40,10 @@
         } catch (e) {
           console.warn("[PWA] LocalStorage access warning:", e);
         }
-          // Purge non-baseline movements from all local caches
-          try {
-            var mRaw = localStorage.getItem("stumarcot_local_movements");
-            if (mRaw) {
-              var mL = JSON.parse(mRaw);
-              localStorage.setItem("stumarcot_local_movements", JSON.stringify(mL.filter(function(m){ return m.type === "opening_balance"; })));
-            }
-            localStorage.setItem("stumarcot_pending_movements_queue", "[]");
-            localStorage.setItem("stumarcot_pending_raw_movements_queue", "[]");
-            var rRaw = localStorage.getItem("stumarcot_raw_movements");
-            if (rRaw) {
-              var rL = JSON.parse(rRaw);
-              localStorage.setItem("stumarcot_raw_movements", JSON.stringify(rL.filter(function(m){ return m.type === "opening_balance"; })));
-            }
-          } catch(e) {}
-
-        }
       })();
     </script>
     
-    <script type="module" src="./assets/index-hgjhj-0G.js?v=1791629459908"></script>
+    <script type="module" src="./assets/index-hgjhj-0G.js?v=1791633550202"></script>
     <link rel="stylesheet" href="./assets/index-BATisU_-.css">
   </head>
   <body>
