@@ -481,7 +481,7 @@ const Bv=({children:s})=>{
         [w,E]=B.useState(()=>{
           const V=localStorage.getItem(cp);
           if(V) try {
-            return JSON.parse(V);
+            return JSON.parse(V).filter(m => m.type === "opening_balance");
           } catch(J){
             console.error("Failed to parse local movements:",J);
           }
@@ -500,7 +500,7 @@ const Bv=({children:s})=>{
         [A,L]=B.useState(()=>{
           const V=localStorage.getItem(Zl);
           if(V) try {
-            return JSON.parse(V);
+            return JSON.parse(V).filter(m => m.type === "opening_balance");
           } catch(J){
             console.error("Failed to parse local raw movements:",J);
           }
@@ -524,6 +524,11 @@ const Bv=({children:s})=>{
     if(!client) return;
 
     // 1. Flush movements queue
+    const rawPending = readQueue(QUEUE_KEYS.MOVEMENTS);
+    const nonBaseline = rawPending.filter(m => m.type !== "opening_balance");
+    if(nonBaseline.length > 0){
+      removeFromQueue(QUEUE_KEYS.MOVEMENTS, nonBaseline.map(m => m.id));
+    }
     const pendingMovs = readQueue(QUEUE_KEYS.MOVEMENTS);
     if(pendingMovs.length > 0){
       try {
@@ -591,17 +596,11 @@ const Bv=({children:s})=>{
         }
       }
 
-      // 2. Reconcile Finished Goods Movements (Merging truly pending local rows only)
+      // 2. Reconcile Finished Goods Movements (Cloud baseline only)
       if(movsRes.status==='fulfilled' && movsRes.value){
         isConnected = !0;
-        const cloudMovs = movsRes.value;
-        const pendingQueue = readQueue(QUEUE_KEYS.MOVEMENTS) || [];
-        const pendingIds = new Set(pendingQueue.map(m => m.id));
-        E(prev => {
-          const cloudIds = new Set(cloudMovs.map(m=>m.id));
-          const localUncommitted = prev.filter(m => !cloudIds.has(m.id) && pendingIds.has(m.id));
-          return [...localUncommitted, ...cloudMovs];
-        });
+        const cloudMovs = movsRes.value.filter(m => m.type === "opening_balance");
+        E(cloudMovs);
       }
 
       // 3. Reconcile Raw Materials Master
@@ -616,17 +615,11 @@ const Bv=({children:s})=>{
         }
       }
 
-      // 4. Reconcile Raw Material Movements (Merging truly pending raw rows only)
+      // 4. Reconcile Raw Material Movements (Cloud baseline only)
       if(rawMovsRes.status==='fulfilled' && rawMovsRes.value){
         isConnected = !0;
-        const cloudRawMovs = rawMovsRes.value;
-        const pendingRawQueue = readQueue(QUEUE_KEYS.RAW_MOVEMENTS) || [];
-        const pendingRawIds = new Set(pendingRawQueue.map(m => m.id));
-        L(prev => {
-          const cloudIds = new Set(cloudRawMovs.map(m=>m.id));
-          const localUncommitted = prev.filter(m => !cloudIds.has(m.id) && pendingRawIds.has(m.id));
-          return [...localUncommitted, ...cloudRawMovs];
-        });
+        const cloudRawMovs = rawMovsRes.value.filter(m => m.type === "opening_balance");
+        L(cloudRawMovs);
       }
 
       fe(isConnected);
@@ -743,11 +736,37 @@ const Bv=({children:s})=>{
     });
   },[]);
 
-  const recordRawMaterialBaselineBatch = B.useCallback(async(baselineEntries,asOfDate)=>{
+  const formatMovementConfirmDate = (dStr) => {
+    if (!dStr) return new Date().toISOString().split("T")[0];
+    try {
+      const clean = String(dStr).split("T")[0];
+      const parts = clean.split("-");
+      if (parts.length === 3) {
+        const dt = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+        const today = new Date().toISOString().split("T")[0];
+        const tag = clean === today ? " [Today]" : "";
+        return dt.toLocaleDateString("en-GB", options) + " (" + clean + ")" + tag;
+      }
+    } catch (e) {}
+    return String(dStr);
+  };
+
+  const recordRawMaterialBaselineBatch = B.useCallback(async(baselineEntries,asOfDate,skipConfirm=false)=>{
     if(!baselineEntries||baselineEntries.length===0) return !0;
     const nowIso=new Date().toISOString(),
-          dateStr=asOfDate||nowIso.split("T")[0],
-          operator=a||"Supervisor",
+          dateStr=asOfDate||nowIso.split("T")[0];
+    if(!skipConfirm && typeof window !== "undefined"){
+      const isConfirmed = window.confirm(
+        `Confirm Movement Date:\n\n` +
+        `Activity: Raw Material Opening Baseline\n` +
+        `Transaction Date: ${formatMovementConfirmDate(dateStr)}\n\n` +
+        `Are you sure you want to record this movement for this date?\n\n` +
+        `Click OK to confirm and proceed, or Cancel to review/change date.`
+      );
+      if(!isConfirmed) return !1;
+    }
+    const operator=a||"Supervisor",
           newMovements=[],
           updatedMats=[];
     
@@ -800,12 +819,24 @@ const Bv=({children:s})=>{
     return !0;
   },[j,a]);
 
-  const le = B.useCallback(async(V,J,ie,priceVal,totalCostVal,sourceVal,customDate,movType)=>{
+  const le = B.useCallback(async(V,J,ie,priceVal,totalCostVal,sourceVal,customDate,movType,skipConfirm=false)=>{
     if(J<=0) return !1;
     const Ce = customDate?(customDate.includes("T")?customDate:new Date(customDate).toISOString()):new Date().toISOString(),
+          targetDate = Ce.split("T")[0],
           ce = a||"Supervisor",
           numQty = Number(Number(J).toFixed(2)),
           mType = movType||"restock_in";
+    if(!skipConfirm && mType!=="production_deduction" && typeof window !== "undefined"){
+      const typeLabel = mType === "opening_balance" ? "Raw Material Baseline" : "Raw Material Restock / Intake";
+      const isConfirmed = window.confirm(
+        `Confirm Movement Date:\n\n` +
+        `Activity: ${typeLabel}\n` +
+        `Transaction Date: ${formatMovementConfirmDate(targetDate)}\n\n` +
+        `Are you sure you want to record this movement for this date?\n\n` +
+        `Click OK to confirm and proceed, or Cancel to review/change date.`
+      );
+      if(!isConfirmed) return !1;
+    }
     
     let updatedTargetMat = null;
     k(ke => ke.map(_e => {
@@ -1044,7 +1075,23 @@ const Bv=({children:s})=>{
   },[]);
 
   // Single movement insertion
-  const oe = B.useCallback(async V => {
+  const oe = B.useCallback(async (V, skipConfirm = false) => {
+    const movementDate = V.date || new Date().toISOString().split("T")[0];
+    if(!skipConfirm && typeof window !== "undefined"){
+      const typeLabel = V.type === "production_in" ? "Daily Production"
+                      : (V.type === "dispatch_out" || V.type === "sale_out") ? "Sales Dispatch"
+                      : V.type === "opening_balance" ? "Opening Stock Baseline"
+                      : "Stock Movement";
+      const formattedDate = formatMovementConfirmDate(movementDate);
+      const isConfirmed = window.confirm(
+        `Confirm Movement Date:\n\n` +
+        `Activity: ${typeLabel}\n` +
+        `Transaction Date: ${formattedDate}\n\n` +
+        `Are you sure you want to record this movement for this date?\n\n` +
+        `Click OK to confirm and proceed, or Cancel to review/change date.`
+      );
+      if(!isConfirmed) return !1;
+    }
     const J = V.batch_id||(crypto.randomUUID?crypto.randomUUID():('batch-' + Date.now())),
           ie = new Date().toISOString(),
           Ce = a||"Supervisor";
@@ -1082,8 +1129,24 @@ const Bv=({children:s})=>{
   },[x, a, he]);
 
   // Batch movements insertion (Production & Sales)
-  const G = B.useCallback(async V => {
+  const G = B.useCallback(async (V, skipConfirm = false) => {
     if(!V || V.length===0) return !0;
+    const movementDate = V[0]?.date || new Date().toISOString().split("T")[0];
+    if(!skipConfirm && typeof window !== "undefined"){
+      const typeLabel = V[0]?.type === "production_in" ? "Daily Production"
+                      : (V[0]?.type === "dispatch_out" || V[0]?.type === "sale_out") ? "Sales Dispatch"
+                      : V[0]?.type === "opening_balance" ? "Opening Stock Baseline"
+                      : "Stock Movement";
+      const formattedDate = formatMovementConfirmDate(movementDate);
+      const isConfirmed = window.confirm(
+        `Confirm Movement Date:\n\n` +
+        `Activity: ${typeLabel}\n` +
+        `Transaction Date: ${formattedDate}\n\n` +
+        `Are you sure you want to record this movement for this date?\n\n` +
+        `Click OK to confirm and proceed, or Cancel to review/change date.`
+      );
+      if(!isConfirmed) return !1;
+    }
     const J = V[0]?.batch_id || (crypto.randomUUID?crypto.randomUUID():('batch-' + Date.now())),
           ie = new Date().toISOString(),
           Ce = a||"Supervisor",
@@ -5947,6 +6010,7 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     if (stagedBatches.length === 0) return;
     P(!0);
 
+    const targetMovementDate = g || (stagedBatches[0] && stagedBatches[0].date) || new Date().toISOString().split("T")[0];
     const movementsToInsert = [];
     for (const b of stagedBatches) {
       const batchId = crypto.randomUUID ? crypto.randomUUID() : "batch-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
@@ -5959,7 +6023,7 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           quantity_pcs: b.mainPieces,
           quantity_sqm: b.mainSqm,
           delta: (b.unit === "sqm" && b.mainSqm !== null) ? b.mainSqm : b.mainPieces,
-          date: b.date,
+          date: targetMovementDate,
           note: b.note ? ("Batch #" + b.batchNumber + ": " + b.note) : ("Batch #" + b.batchNumber + " daily production run"),
           materials_used: b.materialsUsed,
           qc_status: b.qcStatus,
@@ -5981,7 +6045,7 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             quantity_pcs: r.quantity_pcs,
             quantity_sqm: r.quantity_sqm,
             delta: (r.unit === "sqm" && r.quantity_sqm !== null) ? r.quantity_sqm : r.quantity_pcs,
-            date: b.date,
+            date: targetMovementDate,
             note: "Residual mold from Batch #" + b.batchNumber + " (" + b.productName + ")",
             materials_used: null,
             qc_status: b.qcStatus,
@@ -5999,8 +6063,8 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     try {
       const res = await u(movementsToInsert);
       P(!1);
-      setShowAuditModal(!1);
       if (res) {
+        setShowAuditModal(!1);
         try {
           Ga({ particleCount: 90, spread: 85, origin: { y: 0.6 }, colors: ["#f97316", "#10b981", "#38bdf8", "#fb923c", "#eab308"] });
         } catch(err) {}
@@ -7100,7 +7164,17 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 o.jsxs("div", {
                   children: [
                     o.jsx("h2", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Daily Production Verification Document" }),
-                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }, children: ["Production Date: ", o.jsx("strong", { style: { color: "#f8fafc" }, children: g }), " • Verified by: ", d || "Supervisor"] })
+                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "3px", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }, children: [
+                      "Production Date: ",
+                      o.jsx("input", {
+                        type: "date",
+                        value: g,
+                        onChange: K => _(K.target.value),
+                        style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", borderRadius: "4px", color: "#f8fafc", fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 6px", outline: "none", cursor: "pointer" }
+                      }),
+                      " • Verified by: ",
+                      d || "Supervisor"
+                    ] })
                   ]
                 }),
                 o.jsx("button", { type: "button", onClick: () => setShowAuditModal(!1), className: "btn-ghost", style: { padding: "4px", color: "var(--text-muted)" }, children: "✕" })
@@ -8038,7 +8112,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           quantity_pcs: item.qtyPcs || item.qty,
           quantity_sqm: item.sqm,
           delta: negativeDelta,
-          date: sale.date,
+          date: sale.date || saleDate,
           note: `Customer: ${sale.customerName} | Dest: ${sale.deliverySite} | TIN: ${sale.customerTin} | Acc: ${item.account}`,
           batch_id: dispatchBatchId,
           price_per_unit: item.sellingPrice,
@@ -9083,8 +9157,14 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 o.jsxs("div", {
                   children: [
                     o.jsx("h2", { style: { fontSize: "17px", fontWeight: 800, color: "#f8fafc", margin: 0 }, children: "Daily Sales Verification Document" }),
-                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }, children: [
-                      "Sales Date: ", o.jsx("strong", { style: { color: "#f8fafc" }, children: saleDate }),
+                    o.jsxs("p", { style: { fontSize: "12px", color: "var(--text-muted)", marginTop: "3px", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }, children: [
+                      "Sales Date: ",
+                      o.jsx("input", {
+                        type: "date",
+                        value: saleDate,
+                        onChange: e => setSaleDate(e.target.value),
+                        style: { background: "var(--bg-input)", border: "1px solid var(--border-subtle)", borderRadius: "4px", color: "#f8fafc", fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, padding: "2px 6px", outline: "none", cursor: "pointer" }
+                      }),
                       " • Total Invoices: ", o.jsx("strong", { style: { color: "#f8fafc" }, children: stagedSales.length }),
                       " • Verified by: ", f || "Staff"
                     ] })
