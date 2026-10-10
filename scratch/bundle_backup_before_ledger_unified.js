@@ -9383,7 +9383,6 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
 },w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a,resetProductBaseline,deleteMovements}=Vt(),handleUndoPreviousEntries=async()=>{const M=t.filter(ee=>ee.type==="opening_balance");if(M.length===0){if(Object.keys(f).some(ee=>f[ee]&&parseFloat(f[ee])>0)){const ee=window.confirm("You have unsaved baseline entries typed in the form.\n\nDo you want to undo/clear these unsaved inputs?");ee&&(m({}),window.alert("✓ Unsaved baseline inputs cleared."))}else window.alert("No previous baseline entries found to undo.");return}const ee=M[M.length-1];let le=[];ee.batch_id?le=M.filter(he=>he.batch_id===ee.batch_id):ee.created_at&&(le=M.filter(he=>he.created_at===ee.created_at)),le.length===0&&(le=[ee]);const he=Array.from(new Set(le.map(Pe=>{const oe=s.find(ue=>ue.id===Pe.item_id);return oe?oe.name:"Product"}))).join(", "),Pe=window.confirm(`Undo previous baseline entry for:\n${he} (${le.length} ${le.length===1?"record":"records"})?\n\nThis will remove the baseline record and restore the values into the form inputs for editing.`);if(!Pe)return;deleteMovements&&await deleteMovements({ids:le.map(oe=>oe.id),batch_id:ee.batch_id}),m(oe=>{const ue={...oe};for(const P of le){const y=`${P.item_id}_${P.color||"Standard"}`,O=g[P.item_id]||"pcs",z=O==="sqm"&&P.quantity_sqm!=null?P.quantity_sqm:P.quantity_pcs;ue[y]=String(z)}return ue}),L(null),window.alert(`✓ Undid previous baseline entries for ${he}.\n\nValues have been restored to the form inputs for editing.`)},handleUndoItemBaseline=async M=>{const ee=t.filter(le=>le.type==="opening_balance"&&le.item_id===M.id);if(ee.length===0)return;const le=window.confirm(`Undo baseline entry for "${M.name}"?\n\nThis will remove its baseline record and restore its values into the form so you can edit it.`);if(!le)return;deleteMovements&&await deleteMovements(ee.map(he=>he.id)),m(he=>{const Pe={...he};for(const oe of ee){const G=`${oe.item_id}_${oe.color||"Standard"}`,ue=g[oe.item_id]||"pcs",P=ue==="sqm"&&oe.quantity_sqm!=null?oe.quantity_sqm:oe.quantity_pcs;Pe[G]=String(P)}return Pe}),window.alert(`✓ Baseline entry for "${M.name}" removed and restored to form inputs.`)},handleResetBaseline=async()=>{const confirmed=window.confirm("Are you sure you want to RESET all product baseline opening balances?\n\nThis will clear all product baseline records and entries so you can test baselining again from scratch.");if(!confirmed)return;m({});L(null);if(resetProductBaseline)await resetProductBaseline();window.alert("✓ Product baseline opening balances have been reset.");},c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:handleResetBaseline,className:"btn btn-ghost btn-sm",style:{border:"1px solid rgba(239, 68, 68, 0.4)",color:"#ef4444",padding:"9px 13px",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Reset all product baseline opening balances for testing",children:[o.jsx("span",{children:"🔄"}),o.jsx("span",{children:"Reset Baseline"})]}),o.jsxs("button",{type:"button",onClick:handleUndoPreviousEntries,className:"btn btn-secondary btn-sm",style:{border:"1px solid rgba(249, 115, 22, 0.4)",color:"var(--brand-400)",background:"rgba(249, 115, 22, 0.08)",padding:"9px 13px",fontSize:"13px",fontWeight:700,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Undo previous baseline entries and restore values to inputs",children:[o.jsx(Mx,{size:15}),o.jsx("span",{children:"Undo Previous Entries"})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"}),o.jsxs("button",{type:"button",onClick:()=>handleUndoItemBaseline(oe),className:"btn btn-ghost btn-sm",style:{padding:"2px 7px",fontSize:"11px",color:"var(--brand-400)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"4px",display:"inline-flex",alignItems:"center",gap:"3px"},title:`Undo baseline entry for ${oe.name}`,children:[o.jsx(Mx,{size:11}),o.jsx("span",{children:"Undo"})]})]})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r,deleteItem}=Vt(),handleDeleteProduct=async M=>{if(!M)return;const ee=window.confirm(`Are you sure you want to delete "${M.name}"?\n\nThis will permanently remove it from the product catalog.`);if(!ee)return;deleteItem&&await deleteItem(M.id),x&&x.id===M.id&&(b(null),E(!1)),ne(`Product "${M.name}" deleted successfully.`)},[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",flexShrink:0},children:[o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px"},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]}),o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(M),className:"btn btn-ghost btn-sm",style:{padding:"6px 10px",fontSize:"12px",color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.3)",borderRadius:"var(--radius-md)",display:"flex",alignItems:"center",gap:"4px"},title:`Delete ${M.name}`,children:[o.jsx(Yp,{size:13}),o.jsx("span",{children:"Delete"})]})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",alignItems:"center",justifyContent:"space-between",marginTop:"16px",flexWrap:"wrap"},children:[x?o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(x),className:"btn btn-ghost",style:{color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.4)",display:"flex",alignItems:"center",gap:"6px",fontSize:"13px",padding:"8px 12px"},children:[o.jsx(Yp,{size:14}),o.jsx("span",{children:"Delete Product"})]}):o.jsx("div",{}),o.jsxs("div",{style:{display:"flex",gap:"10px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})]})})]})},k1=()=>{
   var T,N;
   const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, deleteMovements, deleteRawMovement} = Vt();
-
   const handleDeleteMovement = async (mov) => {
     if (!mov) return;
     const item = Pe.get(mov.item_id);
@@ -9400,7 +9399,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     const confirmed = window.confirm(
       `Delete this ${typeLabel} entry?\n\n` +
       `${detailMsg}\n\n` +
-      `This will remove the transaction from the Ledger and revert inventory balances.`
+      `This will remove the transaction from the Unified Ledger and revert inventory balances.`
     );
     if (!confirmed) return;
     if (deleteMovements) {
@@ -9428,32 +9427,25 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   };
 
   const handleUndo = async () => {
-    const latestFinished = s && s.length > 0 ? s[0] : null;
-    const latestRaw = c && c.length > 0 ? c[0] : null;
-    if (!latestFinished && !latestRaw) {
+    if (!s || s.length === 0) {
       window.alert("No recorded ledger entries found to undo.");
       return;
     }
-    let isRawLatest = false;
-    if (d === "materials" && latestRaw) {
-      isRawLatest = true;
-    } else if (!latestFinished) {
-      isRawLatest = true;
-    } else if (latestRaw && (d === "all")) {
-      const finishedTime = latestFinished.created_at ? new Date(latestFinished.created_at).getTime() : 0;
-      const rawTime = latestRaw.created_at ? new Date(latestRaw.created_at).getTime() : 0;
-      if (rawTime > finishedTime) isRawLatest = true;
+    const latest = s[0];
+    const targetMovs = latest.batch_id ? s.filter(m => m.batch_id === latest.batch_id) : [latest];
+    const itemNames = Array.from(new Set(targetMovs.map(m => {
+      const item = t.find(it => it.id === m.item_id);
+      return item ? item.name : "Item";
+    }))).join(", ");
+    const typeLabel = latest.type === "production_in" ? "Production" : latest.type === "opening_balance" ? "Baseline" : latest.type === "dispatch_out" ? "Dispatch" : "Movement";
+    const confirmed = window.confirm(`Undo last recorded ${typeLabel} entry for:\n${itemNames} (${targetMovs.length} ${targetMovs.length === 1 ? "record" : "records"} on ${latest.date})?\n\nThis will remove the transaction from the ledger and restore materials to inventory.`);
+    if (!confirmed) return;
+    if (deleteMovements) {
+      await deleteMovements({ ids: targetMovs.map(m => m.id), batch_id: latest.batch_id });
     }
-
-    if (isRawLatest && latestRaw) {
-      await handleDeleteRawMovement(latestRaw);
-    } else if (latestFinished) {
-      await handleDeleteMovement(latestFinished);
-    }
+    window.alert(`✓ Successfully undid last ${typeLabel} entry for ${itemNames}.`);
   };
-
-  // Main 4 ledger modes requested by user: all movement, production, sales, materials
-  const [d, f] = B.useState("all");
+  const [d, f] = B.useState("finished_goods");
   const [m, g] = B.useState("");
   const [_, x] = B.useState("all");
   const [selectedCategory, setSelectedCategory] = B.useState("all");
@@ -9462,10 +9454,16 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   const [k, A] = B.useState("");
   const [datePreset, setDatePreset] = B.useState("all");
   const [showAllProductBreakdown, setShowAllProductBreakdown] = B.useState(false);
+  const [L, W] = B.useState(!1);
+  const [H, ne] = B.useState("dispatch_out");
+  const [Y, ae] = B.useState(((T = t[0]) == null ? void 0 : T.id) || "");
+  const [fe, xe] = B.useState("Standard");
+  const [Ie, Be] = B.useState("");
+  const [M, ee] = B.useState("");
   const [le, he] = B.useState(null);
 
   const formatMoney = B.useCallback((n) => Math.round(Number(n) || 0).toLocaleString(), []);
-  const formatCement = B.useCallback((val) => (val % 1 === 0 ? val : Number(val.toFixed(1))), []);
+  const formatCement = B.useCallback((c) => (c % 1 === 0 ? c : Number(c.toFixed(1))), []);
 
   const Pe = B.useMemo(() => {
     const S = new Map();
@@ -9479,7 +9477,9 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     return S;
   }, [u]);
 
-  // Categories derived dynamically
+  const G = Pe.get(Y);
+
+  // Available categories derived dynamically from items
   const categories = B.useMemo(() => {
     const set = new Set();
     for (const item of t) {
@@ -9494,6 +9494,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     return t.filter(it => it.category === selectedCategory);
   }, [t, selectedCategory]);
 
+  // Date range presets helper for weekly / monthly / custom determinations
   const applyDatePreset = B.useCallback((preset) => {
     setDatePreset(preset);
     const now = new Date();
@@ -9526,22 +9527,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
 
   // Filtered finished goods movements
   const ue = B.useMemo(() => s.filter(S => {
-    if (d === "production" && S.type !== "production_in") return !1;
-    if (d === "sales" && S.type !== "dispatch_out" && S.type !== "sale_out") return !1;
-    if (d === "materials") return !1;
-
-    if (_ !== "all") {
-      if (_ === "production") {
-        if (S.type !== "production_in") return !1;
-      } else if (_ === "sales") {
-        if (S.type !== "dispatch_out" && S.type !== "sale_out") return !1;
-      } else if (_ === "materials") {
-        return !1;
-      } else if (S.type !== _) {
-        return !1;
-      }
-    }
-
+    if (_ !== "all" && S.type !== _) return !1;
     if (selectedCategory !== "all") {
       const it = Pe.get(S.item_id);
       if (!it || it.category !== selectedCategory) return !1;
@@ -9549,73 +9535,37 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     if (b !== "all" && S.item_id !== b) return !1;
     if (E && S.date < E) return !1;
     if (k && S.date > k) return !1;
-
     if (m.trim()) {
       const D = Pe.get(S.item_id),
             F = D ? D.name.toLowerCase() : "",
-            cat = D ? (D.category || "").toLowerCase() : "",
             Z = (S.note || "").toLowerCase(),
             se = (S.entered_by || "").toLowerCase(),
-            cust = (S.customer_name || "").toLowerCase(),
-            inv = (S.invoice_no || "").toLowerCase(),
             we = m.toLowerCase();
-      if (!F.includes(we) && !cat.includes(we) && !Z.includes(we) && !se.includes(we) && !cust.includes(we) && !inv.includes(we)) return !1;
+      if (!F.includes(we) && !Z.includes(we) && !se.includes(we)) return !1;
     }
     return !0;
-  }), [s, d, _, selectedCategory, b, E, k, m, Pe]);
+  }), [s, _, selectedCategory, b, E, k, m, Pe]);
 
   // Filtered raw materials movements
   const P = B.useMemo(() => c.filter(S => {
-    if (d === "production" || d === "sales") return !1;
-
-    if (_ !== "all") {
-      if (_ === "materials") {
-        // keep all materials
-      } else if (_ === "production" || _ === "sales" || _ === "production_in" || _ === "dispatch_out") {
-        return !1;
-      } else if (S.type !== _) {
-        return !1;
-      }
-    }
-
+    if (_ !== "all" && S.type !== _) return !1;
     if (E && S.date < E || k && S.date > k) return !1;
-
     if (m.trim()) {
       const D = oe.get(S.materialKey),
-            F = D ? (D.name + " " + (D.nameSwahili || "")).toLowerCase() : "",
-            src = (S.source || "").toLowerCase(),
+            F = D ? (D.name + " " + D.nameSwahili).toLowerCase() : "",
             Z = (S.note || "").toLowerCase(),
-            se = (S.enteredBy || S.entered_by || "").toLowerCase(),
+            se = (S.enteredBy || "").toLowerCase(),
             we = m.toLowerCase();
-      if (!F.includes(we) && !src.includes(we) && !Z.includes(we) && !se.includes(we)) return !1;
+      if (!F.includes(we) && !Z.includes(we) && !se.includes(we)) return !1;
     }
     return !0;
-  }), [c, d, _, E, k, m, oe]);
+  }), [c, _, E, k, m, oe]);
 
-  // Unified combined movements list (handles All, Production, Sales, Materials)
-  const unifiedMovements = B.useMemo(() => {
-    if (d === "materials") {
-      return P.map(rm => ({ ...rm, isRaw: true }));
-    }
-    if (d === "production" || d === "sales") {
-      return ue.map(fm => ({ ...fm, isRaw: false }));
-    }
-    // d === "all"
-    const finishedFormatted = ue.map(fm => ({ ...fm, isRaw: false }));
-    const rawFormatted = P.map(rm => ({ ...rm, isRaw: true }));
-    const combined = [...finishedFormatted, ...rawFormatted];
-
-    combined.sort((a_mov, b_mov) => {
-      const dateCmp = (b_mov.date || "").localeCompare(a_mov.date || "");
-      if (dateCmp !== 0) return dateCmp;
-      const timeA = a_mov.created_at ? new Date(a_mov.created_at).getTime() : 0;
-      const timeB = b_mov.created_at ? new Date(b_mov.created_at).getTime() : 0;
-      return timeB - timeA;
-    });
-    return combined;
-  }, [d, ue, P]);
-
-  // Aggregate stats across filtered movements
+  // Domain determination summary:
+  // - Never count different products as one
+  // - Production: Cement amount used (bags) is primary metric
+  // - Sales: Total revenue amount (TSh) is primary metric
+  // - In product qty lines: show how much cement was used to produce that qty
   const summary = B.useMemo(() => {
     const byProduct = new Map();
     const seenBatches = new Set();
@@ -9623,10 +9573,6 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     let totalSalesAmount = 0;
     let prodBatchesCount = 0;
     let salesDispatchesCount = 0;
-    let totalProdPcs = 0;
-    let totalProdSqm = 0;
-    let totalSalesPcs = 0;
-    let totalSalesSqm = 0;
 
     for (const mov of ue) {
       const item = Pe.get(mov.item_id);
@@ -9652,8 +9598,6 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
       if (mov.type === "production_in") {
         stat.prodPcs += pcs;
         stat.prodSqm += sqm;
-        totalProdPcs += pcs;
-        totalProdSqm += sqm;
 
         let cementThisMov = Number(mov.actual_cement_bags) || 
                             Number(mov.computed_materials_deducted && mov.computed_materials_deducted.cementBags) || 
@@ -9669,11 +9613,9 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           prodBatchesCount++;
         }
         stat.prodCement += cementThisMov;
-      } else if (mov.type === "dispatch_out" || mov.type === "sale_out") {
+      } else if (mov.type === "dispatch_out") {
         stat.salesPcs += pcs;
         stat.salesSqm += sqm;
-        totalSalesPcs += pcs;
-        totalSalesSqm += sqm;
         salesDispatchesCount++;
 
         let amt = Number(mov.total_price) || Number(mov.total_amount) || 0;
@@ -9691,220 +9633,117 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
       p.prodCement = Number(p.prodCement.toFixed(1));
     });
 
-    let rawIntakesCount = 0;
-    let rawDeductionsCount = 0;
-    for (const rm of P) {
-      if (rm.delta > 0) rawIntakesCount++;
-      else rawDeductionsCount++;
-    }
-
     return {
       totalCementBags: Number(totalCementBags.toFixed(1)),
       totalSalesAmount,
       prodBatchesCount,
       salesDispatchesCount,
-      totalProdPcs,
-      totalProdSqm: Number(totalProdSqm.toFixed(1)),
-      totalSalesPcs,
-      totalSalesSqm: Number(totalSalesSqm.toFixed(1)),
       productsList,
-      uniqueProductsCount: productsList.length,
-      rawIntakesCount,
-      rawDeductionsCount,
-      rawTotalCount: P.length
+      uniqueProductsCount: productsList.length
     };
-  }, [ue, P, Pe]);
+  }, [ue, Pe]);
 
-  const O = (type, isRaw = false) => {
-    if (isRaw) {
-      switch (type) {
-        case "opening_balance":
-          return o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(mc, { size: 11 }), " Mat Baseline"] });
-        case "restock_in":
-          return o.jsxs("span", { className: "badge badge-success", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(Gv, { size: 11 }), " Mat Intake"] });
-        case "production_deduction":
-          return o.jsxs("span", { className: "badge badge-neutral", style: { fontSize: "10.5px", padding: "2px 7px", color: "var(--brand-400)", border: "1px solid rgba(249, 115, 22, 0.3)" }, children: [o.jsx(pc, { size: 11 }), " Recipe Used"] });
-        default:
-          return o.jsxs("span", { className: "badge badge-neutral", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(pc, { size: 11 }), " Material"] });
-      }
-    }
-    switch (type) {
+  const y = async S => {
+    S.preventDefault();
+    const D = parseFloat(Ie);
+    if (isNaN(D) || D <= 0) return;
+    const F = Pe.get(Y);
+    if (!F) return;
+    const Z = fe === "Standard" ? null : fe;
+    let se = null;
+    F.unit === "sqm" && F.pcs_per_sqm && F.pcs_per_sqm > 0 && (se = Number((D / F.pcs_per_sqm).toFixed(2)));
+    let we = F.unit === "sqm" && se !== null ? se : D;
+    H === "dispatch_out" && (we = -Math.abs(we));
+    (await r({
+      item_id: F.id,
+      type: H,
+      color: Z,
+      quantity_pcs: D,
+      quantity_sqm: se,
+      delta: we,
+      date: new Date().toISOString().split("T")[0],
+      note: M || (H === "dispatch_out" ? "Manual Dispatch" : "Manual Adjustment")
+    })) && (W(!1), Be(""), ee(""));
+  };
+
+  const O = S => {
+    switch (S) {
       case "production_in":
-        return o.jsxs("span", { className: "badge badge-success", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(fc, { size: 11 }), " Production"] });
+        return o.jsxs("span", { className: "badge badge-success", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Gv, { size: 12 }), " Production"] });
       case "opening_balance":
-        return o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(mc, { size: 11 }), " Baseline"] });
+        return o.jsxs("span", { className: "badge badge-info", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(mc, { size: 12 }), " Baseline"] });
       case "dispatch_out":
-      case "sale_out":
-        return o.jsxs("span", { className: "badge badge-danger", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(Ka, { size: 11 }), " Sales Dispatch"] });
+        return o.jsxs("span", { className: "badge badge-danger", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Vp, { size: 12 }), " Dispatch"] });
       case "adjustment":
-        return o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(Sc, { size: 11 }), " Adjustment"] });
-      default:
-        return o.jsxs("span", { className: "badge badge-neutral", style: { fontSize: "10.5px", padding: "2px 7px" }, children: [o.jsx(xx, { size: 11 }), " ", type] });
+        return o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "11px", padding: "2px 7px" }, children: [o.jsx(Sc, { size: 12 }), " Adjustment"] });
     }
   };
 
-  const z = S => !S || S === "unspecified" ? null : S === "optimal" ? o.jsxs("span", { className: "badge badge-success", style: { fontSize: "10px", padding: "1px 5px" }, children: [o.jsx(Qp, { size: 10 }), " Optimal"] }) : S === "lean_warning" ? o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "10px", padding: "1px 5px" }, children: [o.jsx(Kx, { size: 10 }), " Lean Alert"] }) : S === "rich_notice" ? o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10px", padding: "1px 5px" }, children: [o.jsx(jx, { size: 10 }), " Rich Mix"] }) : null;
-
-  const totalAllCount = s.length + c.length;
-  const prodCount = s.filter(mov => mov.type === "production_in").length;
-  const salesCount = s.filter(mov => mov.type === "dispatch_out" || mov.type === "sale_out").length;
-  const materialsCount = c.length;
+  const z = S => !S || S === "unspecified" ? null : S === "optimal" ? o.jsxs("span", { className: "badge badge-success", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(Qp, { size: 11 }), " QC Optimal"] }) : S === "lean_warning" ? o.jsxs("span", { className: "badge badge-warning", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(Kx, { size: 11 }), " QC Lean Alert"] }) : S === "rich_notice" ? o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10.5px", padding: "1px 6px" }, children: [o.jsx(jx, { size: 11 }), " QC Rich Mix"] }) : null;
 
   return o.jsxs("div", {
-    style: { display: "flex", flexDirection: "column", gap: "14px" },
+    style: { display: "flex", flexDirection: "column", gap: "12px" },
     children: [
-      // Top Header: Title, Description, and Undo button
+      // Top Header
       o.jsxs("div", {
         style: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" },
         children: [
           o.jsxs("div", {
             children: [
-              o.jsx("h1", { style: { fontSize: "20px", fontWeight: 800 }, children: "Append-Only Stock Ledger" }),
-              o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Complete audit record: All Movement, Production, Sales, & Materials" })
+              o.jsx("h1", { style: { fontSize: "19px", fontWeight: 800 }, children: "Append-Only Ledger Log" }),
+              o.jsx("p", { style: { fontSize: "12px", color: "var(--text-muted)" }, children: "Immutable history of finished goods movements & raw material auto-deductions" })
             ]
           }),
-          o.jsx("button", {
-            type: "button",
-            onClick: handleUndo,
-            className: "btn btn-secondary btn-sm",
-            style: { gap: "6px", color: "var(--brand-400)", borderColor: "var(--border-subtle)" },
-            title: "Undo the last recorded transaction in the ledger",
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", gap: "8px" },
             children: [
-              o.jsx(Mx, { size: 14 }),
-              o.jsx("span", { children: "Undo" })
+              o.jsx("button", {
+                type: "button",
+                onClick: handleUndo,
+                className: "btn btn-secondary btn-sm",
+                style: { gap: "6px", color: "var(--brand-400)", borderColor: "var(--border-subtle)" },
+                title: "Undo the last recorded transaction in the ledger",
+                children: [
+                  o.jsx(Mx, { size: 14 }),
+                  o.jsx("span", { children: "Undo" })
+                ]
+              })
             ]
           })
         ]
       }),
 
-      // MAIN 4 LEDGER TABS: All Movement, Production, Sales, Materials
+      // Main Finished Goods vs Raw Materials Tabs
       o.jsxs("div", {
-        style: {
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "4px",
-          background: "var(--bg-surface-elevated)",
-          padding: "3px",
-          borderRadius: "8px",
-          border: "1px solid var(--border-subtle)"
-        },
+        style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "var(--bg-surface-elevated)", padding: "3px", borderRadius: "8px", border: "1px solid var(--border-subtle)" },
         children: [
-          // 1. ALL MOVEMENT
           o.jsxs("button", {
             type: "button",
-            onClick: () => { f("all"); x("all"); },
-            style: {
-              padding: "7px 4px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "11.5px",
-              fontWeight: 700,
-              background: d === "all" ? "var(--brand-500)" : "transparent",
-              color: d === "all" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2px",
-              transition: "all 0.15s ease"
-            },
-            title: "View all factory movements (production, sales, materials)",
+            onClick: () => { f("finished_goods"); x("all"); },
+            style: { padding: "6px 8px", borderRadius: "6px", border: "none", fontSize: "12px", fontWeight: 700, background: d === "finished_goods" ? "var(--brand-500)" : "transparent", color: d === "finished_goods" ? "#fff" : "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" },
             children: [
-              o.jsx(mc, { size: 13 }),
-              o.jsxs("span", { children: ["All (", totalAllCount, ")"] })
+              o.jsx(si, { size: 13 }),
+              o.jsxs("span", { children: ["Finished Goods (", s.length, ")"] })
             ]
           }),
-
-          // 2. PRODUCTION
           o.jsxs("button", {
             type: "button",
-            onClick: () => { f("production"); x("all"); },
-            style: {
-              padding: "7px 4px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "11.5px",
-              fontWeight: 700,
-              background: d === "production" ? "var(--brand-500)" : "transparent",
-              color: d === "production" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2px",
-              transition: "all 0.15s ease"
-            },
-            title: "View finished goods production logs",
-            children: [
-              o.jsx(fc, { size: 13 }),
-              o.jsxs("span", { children: ["Production (", prodCount, ")"] })
-            ]
-          }),
-
-          // 3. SALES
-          o.jsxs("button", {
-            type: "button",
-            onClick: () => { f("sales"); x("all"); },
-            style: {
-              padding: "7px 4px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "11.5px",
-              fontWeight: 700,
-              background: d === "sales" ? "var(--brand-500)" : "transparent",
-              color: d === "sales" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2px",
-              transition: "all 0.15s ease"
-            },
-            title: "View sales and customer dispatches",
-            children: [
-              o.jsx(Ka, { size: 13 }),
-              o.jsxs("span", { children: ["Sales (", salesCount, ")"] })
-            ]
-          }),
-
-          // 4. MATERIALS
-          o.jsxs("button", {
-            type: "button",
-            onClick: () => { f("materials"); x("all"); },
-            style: {
-              padding: "7px 4px",
-              borderRadius: "6px",
-              border: "none",
-              fontSize: "11.5px",
-              fontWeight: 700,
-              background: d === "materials" ? "var(--brand-500)" : "transparent",
-              color: d === "materials" ? "#fff" : "var(--text-secondary)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2px",
-              transition: "all 0.15s ease"
-            },
-            title: "View raw materials intakes and recipe deductions",
+            onClick: () => { f("raw_materials"); x("all"); },
+            style: { padding: "6px 8px", borderRadius: "6px", border: "none", fontSize: "12px", fontWeight: 700, background: d === "raw_materials" ? "var(--brand-500)" : "transparent", color: d === "raw_materials" ? "#fff" : "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" },
             children: [
               o.jsx(pc, { size: 13 }),
-              o.jsxs("span", { children: ["Materials (", materialsCount, ")"] })
+              o.jsxs("span", { children: ["Raw Materials (", c.length, ")"] })
             ]
           })
         ]
       }),
 
-      // Filter & Summary Container
+      // Unified Filter Card
       o.jsxs("div", {
         className: "card",
-        style: { padding: "10px 12px", display: "flex", flexDirection: "column", gap: "8px" },
+        style: { padding: "10px 12px", display: "flex", flexDirection: "column", gap: "9px" },
         children: [
-          // Search row
+          // Row 1: Search Box
           o.jsxs("div", {
             className: "search-wrapper",
             children: [
@@ -9912,8 +9751,8 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
               o.jsx("input", {
                 type: "text",
                 className: "input-field search-input",
-                style: { height: "34px", minHeight: "34px", fontSize: "12px" },
-                placeholder: d === "materials" ? "Search material, supplier, operator, notes..." : "Search product, customer, operator, notes...",
+                style: { height: "34px", minHeight: "34px", fontSize: "12.5px" },
+                placeholder: "Search product, operator, notes...",
                 value: m,
                 onChange: S => g(S.target.value)
               }),
@@ -9921,72 +9760,60 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             ]
           }),
 
-          // Secondary filters row (Sub-pills on left, Timeframe dropdown on right end)
+          // Row 2: Same row - Movement type tabs on left, Timeframe dropdown on top right end
           o.jsxs("div", {
             style: {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: "6px",
+              gap: "8px",
               flexWrap: "wrap"
             },
             children: [
-              // Sub-pill filters based on active tab
-              d === "all" ? o.jsx("div", {
+              // Left: Movement Type Filter Tabs (Finished Goods)
+              d === "finished_goods" ? o.jsx("div", {
                 className: "filter-tabs",
                 style: { gap: "4px", margin: 0 },
                 children: [
-                  { id: "all", label: "All Movements" },
-                  { id: "production", label: "Production (+)" },
-                  { id: "sales", label: "Sales (-)" },
-                  { id: "materials", label: "Materials (±)" },
-                  { id: "opening_balance", label: "Baseline" }
+                  { id: "all", label: "All" },
+                  { id: "production_in", label: "Production (+)" },
+                  { id: "opening_balance", label: "Opening" },
+                  { id: "dispatch_out", label: "Dispatch (-)" },
+                  { id: "adjustment", label: "Adjustment" }
                 ].map(S => o.jsx("button", {
                   onClick: () => x(S.id),
                   className: `filter-tab ${_ === S.id ? "active" : ""}`,
-                  style: { fontSize: "10.5px", padding: "3px 7px" },
-                  children: S.label
-                }, S.id))
-              }) : d === "materials" ? o.jsx("div", {
-                className: "filter-tabs",
-                style: { gap: "4px", margin: 0 },
-                children: [
-                  { id: "all", label: "All Materials" },
-                  { id: "restock_in", label: "Intakes (+)" },
-                  { id: "production_deduction", label: "Recipe Deductions (-)" },
-                  { id: "opening_balance", label: "Baseline" }
-                ].map(S => o.jsx("button", {
-                  onClick: () => x(S.id),
-                  className: `filter-tab ${_ === S.id ? "active" : ""}`,
-                  style: { fontSize: "10.5px", padding: "3px 7px" },
+                  style: { fontSize: "11px", padding: "4px 8px" },
                   children: S.label
                 }, S.id))
               }) : o.jsx("div", {
                 className: "filter-tabs",
                 style: { gap: "4px", margin: 0 },
                 children: [
-                  { id: "all", label: d === "production" ? "All Production" : "All Sales" },
-                  { id: "opening_balance", label: "Baseline" }
+                  { id: "all", label: "All Logs" },
+                  { id: "opening_balance", label: "Baseline" },
+                  { id: "restock_in", label: "Intake (+)" },
+                  { id: "production_deduction", label: "Deduction (-)" }
                 ].map(S => o.jsx("button", {
                   onClick: () => x(S.id),
                   className: `filter-tab ${_ === S.id ? "active" : ""}`,
-                  style: { fontSize: "10.5px", padding: "3px 7px" },
+                  style: { fontSize: "11px", padding: "4px 8px" },
                   children: S.label
                 }, S.id))
               }),
 
-              // Timeframe filter dropdown
+              // Right End: Timeframe Filter Dropdown (Same Row!)
               o.jsxs("div", {
-                style: { display: "flex", alignItems: "center", gap: "4px", marginLeft: "auto" },
+                style: { display: "flex", alignItems: "center", gap: "5px", marginLeft: "auto" },
                 children: [
-                  o.jsx(ni, { size: 12, color: "var(--brand-400)" }),
+                  o.jsx(ni, { size: 13, color: "var(--brand-400)" }),
                   o.jsxs("select", {
                     className: "input-field",
                     style: {
-                      height: "28px",
-                      minHeight: "28px",
-                      fontSize: "11px",
-                      padding: "1px 6px",
+                      height: "30px",
+                      minHeight: "30px",
+                      fontSize: "11.5px",
+                      padding: "2px 8px",
                       background: datePreset !== "all" ? "var(--brand-500)" : "var(--bg-input)",
                       color: datePreset !== "all" ? "#ffffff" : "var(--text-secondary)",
                       borderColor: datePreset !== "all" ? "var(--brand-400)" : "var(--border-subtle)",
@@ -10009,7 +9836,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                     type: "button",
                     onClick: () => applyDatePreset("all"),
                     className: "btn btn-ghost btn-sm",
-                    style: { fontSize: "10px", padding: "0 4px", height: "20px", minHeight: "20px", color: "var(--text-muted)" },
+                    style: { fontSize: "10.5px", padding: "1px 5px", height: "22px", minHeight: "22px", color: "var(--text-muted)" },
                     title: "Clear date filter",
                     children: "✕"
                   })
@@ -10018,13 +9845,13 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             ]
           }),
 
-          // Product category and Product dropdowns (when finished goods are relevant)
-          (d === "all" || d === "production" || d === "sales") && o.jsxs("div", {
-            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" },
+          // Row 3: Product Category and Specific Product Dropdowns
+          d === "finished_goods" && o.jsxs("div", {
+            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
             children: [
               o.jsxs("select", {
                 className: "input-field",
-                style: { width: "100%", height: "32px", minHeight: "32px", fontSize: "11.5px", padding: "2px 6px" },
+                style: { width: "100%", height: "34px", minHeight: "34px", fontSize: "12px", padding: "4px 8px" },
                 value: selectedCategory,
                 onChange: (e) => {
                   const newCat = e.target.value;
@@ -10036,25 +9863,154 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 },
                 children: [
                   o.jsx("option", { value: "all", children: "All Categories" }),
-                  categories.filter(c_cat => c_cat !== "all").map(c_cat => o.jsx("option", { value: c_cat, children: c_cat }, c_cat))
+                  categories.filter(cat => cat !== "all").map(cat => o.jsx("option", { value: cat, children: cat }, cat))
                 ]
               }),
+
               o.jsxs("select", {
                 className: "input-field",
-                style: { width: "100%", height: "32px", minHeight: "32px", fontSize: "11.5px", padding: "2px 6px" },
+                style: { width: "100%", height: "34px", minHeight: "34px", fontSize: "12px", padding: "4px 8px" },
                 value: b,
                 onChange: S => w(S.target.value),
                 children: [
                   o.jsxs("option", { value: "all", children: ["All Products (", visibleProducts.length, ")"] }),
-                  visibleProducts.map(S => o.jsx("option", { value: S.id, children: S.name }, S.id))
+                  visibleProducts.map(S => o.jsxs("option", { value: S.id, children: [S.name, selectedCategory === "all" ? " (" + S.category + ")" : ""] }, S.id))
                 ]
               })
             ]
           }),
 
-          // Custom Date Picker (when datePreset === 'custom')
+          // Row 4: TAKES THE POSITION OF THE PREVIOUS TIMEFRAMES FILTER:
+          // Production summary (total cement used) & Sales summary (total sales amount)
+          // Also shows how much cement was used to produce that certain product quantity!
+          d === "finished_goods" && o.jsxs("div", {
+            style: {
+              borderTop: "1px solid var(--border-subtle)",
+              paddingTop: "7px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "5px"
+            },
+            children: [
+              o.jsxs("div", {
+                style: {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  padding: "6px 10px",
+                  borderRadius: "6px"
+                },
+                children: [
+                  // Production Summary: Total Cement Used (Universal cross-product production metric)
+                  o.jsxs("div", {
+                    style: { display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" },
+                    children: [
+                      o.jsx(Gv, { size: 14, color: "var(--status-success)" }),
+                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Cement Used:" }),
+                      o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
+                        summary.totalCementBags, " bags"
+                      ]}),
+                      // If single product is selected: show its specific pieces, sqm AND cement used for that qty!
+                      summary.uniqueProductsCount === 1 && summary.productsList[0] && summary.productsList[0].prodPcs > 0 && o.jsxs("span", {
+                        style: { fontSize: "11px", color: "var(--brand-400)", fontFamily: "var(--font-mono)" },
+                        children: [
+                          "(+", summary.productsList[0].prodPcs.toLocaleString(), " pcs",
+                          summary.productsList[0].prodSqm > 0 ? " · " + summary.productsList[0].prodSqm + " m²" : "",
+                          summary.productsList[0].prodCement > 0 ? " · " + formatCement(summary.productsList[0].prodCement) + " bags cem" : "",
+                          ")"
+                        ]
+                      })
+                    ]
+                  }),
+
+                  o.jsx("span", { style: { color: "var(--border-subtle)", opacity: 0.6 }, children: "│" }),
+
+                  // Sales Summary: Total Sales Amount (Universal cross-product sales metric)
+                  o.jsxs("div", {
+                    style: { display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" },
+                    children: [
+                      o.jsx(Vp, { size: 14, color: "#f87171" }),
+                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Total Sales:" }),
+                      o.jsxs("strong", { style: { fontSize: "13px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
+                        "Tsh ", formatMoney(summary.totalSalesAmount)
+                      ]}),
+                      // If single product is selected, show its specific pieces & sqm
+                      summary.uniqueProductsCount === 1 && summary.productsList[0] && summary.productsList[0].salesPcs > 0 && o.jsxs("span", {
+                        style: { fontSize: "11px", color: "#f87171", fontFamily: "var(--font-mono)" },
+                        children: [
+                          "(-", summary.productsList[0].salesPcs.toLocaleString(), " pcs",
+                          summary.productsList[0].salesSqm > 0 ? " · " + summary.productsList[0].salesSqm + " m²" : "",
+                          ")"
+                        ]
+                      })
+                    ]
+                  }),
+
+                  // Per-product breakdown toggle (if multiple products exist)
+                  summary.uniqueProductsCount > 1 && o.jsx("button", {
+                    type: "button",
+                    onClick: () => setShowAllProductBreakdown(!showAllProductBreakdown),
+                    className: "btn btn-ghost btn-sm",
+                    style: { fontSize: "10.5px", padding: "1px 6px", height: "20px", minHeight: "20px", color: "var(--brand-400)" },
+                    children: showAllProductBreakdown ? "▲ Hide Items" : `▼ Items (${summary.uniqueProductsCount})`
+                  })
+                ]
+              }),
+
+              // Per-Product Separate Quantities Breakdown:
+              // For each product qty line, CEMENT USED for that qty is explicitly shown!
+              summary.uniqueProductsCount > 1 && showAllProductBreakdown && o.jsx("div", {
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  padding: "4px 2px"
+                },
+                children: summary.productsList.map(p => o.jsxs("div", {
+                  key: p.id,
+                  style: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    fontSize: "11.5px",
+                    background: "rgba(255,255,255,0.02)",
+                    padding: "4px 8px",
+                    borderRadius: "4px"
+                  },
+                  children: [
+                    o.jsx("span", { style: { fontWeight: 600, color: "#f8fafc", maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: p.name }),
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "8px", fontFamily: "var(--font-mono)", fontSize: "11px", flexWrap: "wrap", justifyContent: "flex-end" },
+                      children: [
+                        // Production line for this certain product with its exact qty AND cement used!
+                        p.prodPcs > 0 && o.jsxs("span", { style: { color: "var(--status-success)" }, children: [
+                          "+", p.prodPcs.toLocaleString(), " pcs",
+                          p.prodSqm > 0 ? " (" + p.prodSqm + " m²)" : "",
+                          p.prodCement > 0 ? " [" + formatCement(p.prodCement) + " bags cem]" : ""
+                        ]}),
+                        // Sales line for this certain product
+                        p.salesPcs > 0 && o.jsxs("span", { style: { color: "#f87171" }, children: [
+                          "-", p.salesPcs.toLocaleString(), " pcs",
+                          p.salesSqm > 0 ? " (" + p.salesSqm + " m²)" : ""
+                        ]}),
+                        // Revenue for this certain product
+                        p.salesAmount > 0 && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: [
+                          "Tsh ", formatMoney(p.salesAmount)
+                        ]})
+                      ]
+                    })
+                  ]
+                }))
+              })
+            ]
+          }),
+
+          // Row 5: Custom Date Inputs (only appears when Custom Dates is selected)
           (datePreset === "custom") && o.jsxs("div", {
-            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", paddingTop: "4px", borderTop: "1px dashed var(--border-subtle)" },
+            style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", paddingTop: "5px", borderTop: "1px dashed var(--border-subtle)" },
             children: [
               o.jsxs("div", {
                 children: [
@@ -10062,7 +10018,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                   o.jsx("input", {
                     type: "date",
                     className: "input-field mono",
-                    style: { height: "28px", minHeight: "28px", fontSize: "11px", width: "100%", padding: "2px 6px" },
+                    style: { height: "30px", minHeight: "30px", fontSize: "11.5px", width: "100%", padding: "2px 6px" },
                     value: E,
                     onChange: S => j(S.target.value)
                   })
@@ -10074,311 +10030,75 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                   o.jsx("input", {
                     type: "date",
                     className: "input-field mono",
-                    style: { height: "28px", minHeight: "28px", fontSize: "11px", width: "100%", padding: "2px 6px" },
+                    style: { height: "30px", minHeight: "30px", fontSize: "11.5px", width: "100%", padding: "2px 6px" },
                     value: k,
                     onChange: S => A(S.target.value)
                   })
                 ]
               })
             ]
-          }),
-
-          // DOMAIN SUMMARY METRICS STRIP
-          o.jsxs("div", {
-            style: {
-              borderTop: "1px solid var(--border-subtle)",
-              paddingTop: "6px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px"
-            },
-            children: [
-              o.jsxs("div", {
-                style: {
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  padding: "6px 8px",
-                  borderRadius: "6px"
-                },
-                children: [
-                  // Production Metric (Cement Used is primary metric)
-                  (d === "all" || d === "production") && o.jsxs("div", {
-                    style: { display: "inline-flex", alignItems: "center", gap: "5px", flexWrap: "wrap" },
-                    children: [
-                      o.jsx(fc, { size: 13, color: "var(--status-success)" }),
-                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Cement Used:" }),
-                      o.jsxs("strong", { style: { fontSize: "12px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
-                        summary.totalCementBags, " bags"
-                      ]}),
-                      summary.totalProdPcs > 0 && o.jsxs("span", {
-                        style: { fontSize: "10.5px", color: "var(--brand-400)", fontFamily: "var(--font-mono)" },
-                        children: ["(+", summary.totalProdPcs.toLocaleString(), " pcs", summary.totalProdSqm > 0 ? ` · ${summary.totalProdSqm} m²` : "", ")"]
-                      })
-                    ]
-                  }),
-
-                  (d === "all") && o.jsx("span", { style: { color: "var(--border-subtle)", opacity: 0.5 }, children: "│" }),
-
-                  // Sales Metric (Total Revenue Tsh is primary metric)
-                  (d === "all" || d === "sales") && o.jsxs("div", {
-                    style: { display: "inline-flex", alignItems: "center", gap: "5px", flexWrap: "wrap" },
-                    children: [
-                      o.jsx(Ka, { size: 13, color: "#f87171" }),
-                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Sales:" }),
-                      o.jsxs("strong", { style: { fontSize: "12px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
-                        "Tsh ", formatMoney(summary.totalSalesAmount)
-                      ]}),
-                      summary.totalSalesPcs > 0 && o.jsxs("span", {
-                        style: { fontSize: "10.5px", color: "#f87171", fontFamily: "var(--font-mono)" },
-                        children: ["(-", summary.totalSalesPcs.toLocaleString(), " pcs", summary.totalSalesSqm > 0 ? ` · ${summary.totalSalesSqm} m²` : "", ")"]
-                      })
-                    ]
-                  }),
-
-                  // Materials Metric (for Materials tab)
-                  (d === "materials") && o.jsxs("div", {
-                    style: { display: "inline-flex", alignItems: "center", gap: "5px", flexWrap: "wrap" },
-                    children: [
-                      o.jsx(pc, { size: 13, color: "var(--brand-400)" }),
-                      o.jsx("span", { style: { fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600 }, children: "Raw Movements:" }),
-                      o.jsxs("strong", { style: { fontSize: "12px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [
-                        summary.rawTotalCount, " entries"
-                      ]}),
-                      o.jsxs("span", {
-                        style: { fontSize: "10.5px", color: "var(--text-muted)" },
-                        children: ["(", summary.rawIntakesCount, " intakes · ", summary.rawDeductionsCount, " deductions)"]
-                      })
-                    ]
-                  }),
-
-                  // Product breakdown toggle
-                  (d === "all" || d === "production" || d === "sales") && summary.uniqueProductsCount > 1 && o.jsx("button", {
-                    type: "button",
-                    onClick: () => setShowAllProductBreakdown(!showAllProductBreakdown),
-                    className: "btn btn-ghost btn-sm",
-                    style: { fontSize: "10px", padding: "1px 5px", height: "18px", minHeight: "18px", color: "var(--brand-400)" },
-                    children: showAllProductBreakdown ? "▲ Hide Items" : `▼ Items (${summary.uniqueProductsCount})`
-                  })
-                ]
-              }),
-
-              // Per-Product breakdown
-              (d === "all" || d === "production" || d === "sales") && summary.uniqueProductsCount > 1 && showAllProductBreakdown && o.jsx("div", {
-                style: { display: "flex", flexDirection: "column", gap: "3px", padding: "2px" },
-                children: summary.productsList.map(p => o.jsxs("div", {
-                  key: p.id,
-                  style: {
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontSize: "11px",
-                    background: "rgba(255,255,255,0.02)",
-                    padding: "3px 6px",
-                    borderRadius: "4px"
-                  },
-                  children: [
-                    o.jsx("span", { style: { fontWeight: 600, color: "#f8fafc", maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: p.name }),
-                    o.jsxs("div", {
-                      style: { display: "flex", alignItems: "center", gap: "6px", fontFamily: "var(--font-mono)", fontSize: "10.5px", flexWrap: "wrap", justifyContent: "flex-end" },
-                      children: [
-                        p.prodPcs > 0 && o.jsxs("span", { style: { color: "var(--status-success)" }, children: [
-                          "+", p.prodPcs.toLocaleString(), " pcs",
-                          p.prodSqm > 0 ? ` (${p.prodSqm} m²)` : "",
-                          p.prodCement > 0 ? ` [${formatCement(p.prodCement)} bags cem]` : ""
-                        ]}),
-                        p.salesPcs > 0 && o.jsxs("span", { style: { color: "#f87171" }, children: [
-                          "-", p.salesPcs.toLocaleString(), " pcs",
-                          p.salesSqm > 0 ? ` (${p.salesSqm} m²)` : ""
-                        ]}),
-                        p.salesAmount > 0 && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: [
-                          "Tsh ", formatMoney(p.salesAmount)
-                        ]})
-                      ]
-                    })
-                  ]
-                }))
-              })
-            ]
           })
         ]
       }),
 
-      // RECORDED MOVEMENTS LIST (Unified list covering all movement, production, sales, materials)
-      o.jsxs("div", {
+      // Finished Goods Movement List
+      d === "finished_goods" && o.jsxs("div", {
         style: { display: "flex", flexDirection: "column", gap: "8px" },
         children: [
           o.jsxs("div", {
             style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" },
             children: [
-              o.jsxs("span", {
-                style: { fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)" },
-                children: [
-                  d === "all" ? "All Recorded Movements (" + unifiedMovements.length + ")" :
-                  d === "production" ? "Production Movements (" + unifiedMovements.length + ")" :
-                  d === "sales" ? "Sales Dispatches (" + unifiedMovements.length + ")" :
-                  "Raw Material Logs (" + unifiedMovements.length + ")"
-                ]
-              }),
-              o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)" }, children: "Latest first" })
+              o.jsxs("span", { style: { fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: ["Recorded Movements (", ue.length, ")"] }),
+              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Latest first" })
             ]
           }),
-
-          unifiedMovements.length === 0 ? o.jsxs("div", {
+          ue.length === 0 ? o.jsxs("div", {
             className: "card",
             style: { textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" },
             children: [
-              o.jsx(mc, { size: 30, style: { margin: "0 auto 8px auto", opacity: 0.5 } }),
-              o.jsx("div", { style: { fontSize: "14px", fontWeight: 600, color: "var(--text-secondary)" }, children: "No movements found" }),
-              o.jsx("div", { style: { fontSize: "11.5px", marginTop: "3px" }, children: "Transactions matching the selected filters will be recorded here." })
+              o.jsx(mc, { size: 32, style: { margin: "0 auto 8px auto", opacity: .5 } }),
+              o.jsx("div", { style: { fontSize: "14.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: "No movements found" }),
+              o.jsx("div", { style: { fontSize: "12px", marginTop: "4px" }, children: "Logged production or opening balance entries will appear here." })
             ]
-          }) : unifiedMovements.map(S => {
-            // Case 1: Raw Material Movement
-            if (S.isRaw) {
-              const mat = oe.get(S.materialKey);
-              const isBase = S.type === "opening_balance";
-              const isRestock = S.type === "restock_in" || (!isBase && S.delta > 0);
-              const isPositive = S.delta >= 0;
-
-              return o.jsxs("div", {
-                onClick: () => he(S),
-                className: "card",
-                style: {
-                  padding: "10px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "10px",
-                  cursor: "pointer",
-                  borderLeft: isBase ? "3px solid #38bdf8" : isRestock ? "3px solid #34d399" : "3px solid #f97316"
-                },
-                children: [
-                  o.jsxs("div", {
-                    style: { flex: 1, minWidth: 0 },
-                    children: [
-                      o.jsxs("div", {
-                        style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" },
-                        children: [
-                          O(S.type, true),
-                          o.jsx("strong", { style: { fontSize: "13.5px", color: "#f8fafc" }, children: mat ? mat.name : S.materialKey })
-                        ]
-                      }),
-                      o.jsxs("div", {
-                        style: { fontSize: "11px", color: "var(--text-muted)", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" },
-                        children: [
-                          o.jsxs("span", { children: [o.jsx(ni, { size: 11, style: { verticalAlign: "middle" } }), " ", S.date] }),
-                          o.jsxs("span", { children: [o.jsx(Da, { size: 11, style: { verticalAlign: "middle" } }), " ", S.enteredBy || S.entered_by || "Supervisor"] }),
-                          S.source && o.jsxs("span", { style: { color: "var(--brand-400)", fontWeight: 600 }, children: ["📍 ", S.source] }),
-                          S.totalCost && S.totalCost > 0 ? o.jsxs("span", { style: { color: "#34d399", fontWeight: 700 }, children: ["Tsh ", formatMoney(S.totalCost), S.unitPrice ? ` (${formatMoney(S.unitPrice)} / unit)` : ""] }) : null,
-                          S.note && o.jsxs("span", { style: { color: "var(--text-secondary)", maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: ['"', S.note, '"'] })
-                        ]
-                      })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 },
-                    children: [
-                      o.jsx("div", {
-                        style: { textAlign: "right" },
-                        children: o.jsxs("span", {
-                          style: { fontSize: "15px", fontWeight: 800, fontFamily: "var(--font-mono)", color: isBase ? "#38bdf8" : (isPositive ? "#34d399" : "#f97316") },
-                          children: [isPositive ? "+" : "", S.delta, " ", S.unit]
-                        })
-                      }),
-                      o.jsxs("button", {
-                        type: "button",
-                        onClick: (e) => {
-                          e.stopPropagation();
-                          handleDeleteRawMovement(S);
-                        },
-                        className: "btn btn-ghost btn-sm",
-                        style: {
-                          padding: "5px 7px",
-                          color: "#ef4444",
-                          border: "1px solid rgba(239, 68, 68, 0.35)",
-                          borderRadius: "6px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "3px",
-                          fontSize: "10.5px",
-                          fontWeight: 700,
-                          background: "rgba(239, 68, 68, 0.08)",
-                          cursor: "pointer"
-                        },
-                        title: "Delete this raw material log",
-                        children: [
-                          o.jsx(Yp, { size: 12 }),
-                          o.jsx("span", { children: "Delete" })
-                        ]
-                      })
-                    ]
-                  })
-                ]
-              }, S.id);
-            }
-
-            // Case 2: Finished Goods Movement (Production, Sales, Baseline, Adjustment)
-            const item = Pe.get(S.item_id);
-            const isPositive = S.delta >= 0;
-            const isSale = S.type === "dispatch_out" || S.type === "sale_out";
-            const isProd = S.type === "production_in";
-
+          }) : ue.map(S => {
+            const D = Pe.get(S.item_id),
+                  F = S.delta >= 0;
             return o.jsxs("div", {
               onClick: () => he(S),
               className: "card",
-              style: {
-                padding: "10px 12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "10px",
-                cursor: "pointer",
-                borderLeft: isProd ? "3px solid #34d399" : isSale ? "3px solid #f87171" : S.type === "opening_balance" ? "3px solid #38bdf8" : "3px solid #eab308",
-                borderColor: S.qc_status === "lean_warning" ? "rgba(245, 158, 11, 0.5)" : void 0
-              },
+              style: { padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", cursor: "pointer", borderColor: S.qc_status === "lean_warning" ? "rgba(245, 158, 11, 0.4)" : void 0 },
               children: [
                 o.jsxs("div", {
                   style: { flex: 1, minWidth: 0 },
                   children: [
                     o.jsxs("div", {
-                      style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" },
+                      style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" },
                       children: [
-                        O(S.type, false),
-                        o.jsx("span", { style: { fontSize: "13.5px", fontWeight: 700, color: "#f8fafc" }, children: item ? item.name : S.item_id }),
+                        O(S.type),
+                        o.jsx("span", { style: { fontSize: "14.5px", fontWeight: 700, color: "#f8fafc" }, children: D ? D.name : "Unknown Product" }),
                         S.color && o.jsx(xr, { color: S.color, size: "sm", showCount: !1 }),
                         z(S.qc_status)
                       ]
                     }),
                     o.jsxs("div", {
-                      style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", color: "var(--text-muted)", flexWrap: "wrap" },
+                      style: { display: "flex", alignItems: "center", gap: "10px", fontSize: "11.5px", color: "var(--text-muted)", flexWrap: "wrap" },
                       children: [
-                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "2px" }, children: [o.jsx(ni, { size: 11 }), " ", S.date] }),
-                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "2px" }, children: [o.jsx(Da, { size: 11 }), " ", S.entered_by] }),
+                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "3px" }, children: [o.jsx(ni, { size: 12 }), " ", S.date] }),
+                        o.jsxs("span", { style: { display: "flex", alignItems: "center", gap: "3px" }, children: [o.jsx(Da, { size: 12 }), " ", S.entered_by] }),
                         S.computed_materials_deducted && o.jsxs("span", { style: { color: "var(--brand-400)" }, children: ["⚡ ", S.computed_materials_deducted.cementBags, " bags Cem"] }),
-                        (S.total_price || S.total_amount) && o.jsxs("span", { style: { color: "#34d399", fontWeight: 600 }, children: ["Tsh ", formatMoney(S.total_price || S.total_amount)] }),
-                        S.customer_name && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: ["👤 ", S.customer_name] }),
-                        S.note && o.jsxs("span", { style: { color: "var(--text-secondary)", maxWidth: "130px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: ['"', S.note, '"'] })
+                        S.note && o.jsxs("span", { style: { color: "var(--text-secondary)", maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: ['"', S.note, '"'] })
                       ]
                     })
                   ]
                 }),
                 o.jsxs("div", {
-                  style: { display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 },
+                  style: { display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 },
                   children: [
                     o.jsxs("div", {
                       style: { textAlign: "right" },
                       children: [
-                        o.jsxs("div", {
-                          style: { fontSize: "15px", fontWeight: 800, fontFamily: "var(--font-mono)", color: isPositive ? "#34d399" : "#f87171" },
-                          children: [isPositive ? "+" : "", S.quantity_pcs, " pcs"]
-                        }),
-                        S.quantity_sqm !== null && o.jsxs("div", {
-                          style: { fontSize: "11px", color: "var(--brand-400)", fontWeight: 600 },
-                          children: [isPositive ? "+" : "-", Math.abs(S.quantity_sqm), " sqm"]
-                        })
+                        o.jsxs("div", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: F ? "#34d399" : "#f87171" }, children: [F ? "+" : "", S.quantity_pcs, " pcs"] }),
+                        S.quantity_sqm !== null && o.jsxs("div", { style: { fontSize: "12px", color: "var(--brand-400)", fontWeight: 600 }, children: [F ? "+" : "-", Math.abs(S.quantity_sqm), " sqm"] })
                       ]
                     }),
                     o.jsxs("button", {
@@ -10389,21 +10109,21 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                       },
                       className: "btn btn-ghost btn-sm",
                       style: {
-                        padding: "5px 7px",
+                        padding: "6px 8px",
                         color: "#ef4444",
                         border: "1px solid rgba(239, 68, 68, 0.35)",
                         borderRadius: "6px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "3px",
-                        fontSize: "10.5px",
+                        gap: "4px",
+                        fontSize: "11px",
                         fontWeight: 700,
                         background: "rgba(239, 68, 68, 0.08)",
                         cursor: "pointer"
                       },
                       title: "Delete this ledger entry",
                       children: [
-                        o.jsx(Yp, { size: 12 }),
+                        o.jsx(Yp, { size: 13 }),
                         o.jsx("span", { children: "Delete" })
                       ]
                     })
@@ -10415,212 +10135,210 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
         ]
       }),
 
-      // DETAILS MODAL (le state: handles both finished goods and raw materials)
+      // Raw Materials List
+      d === "raw_materials" && o.jsxs("div", {
+        style: { display: "flex", flexDirection: "column", gap: "8px" },
+        children: [
+          o.jsxs("div", {
+            style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" },
+            children: [
+              o.jsxs("span", { style: { fontSize: "12.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: ["Raw Material Ledger Logs (", P.length, ")"] }),
+              o.jsx("span", { style: { fontSize: "11px", color: "var(--text-muted)" }, children: "Production deductions & restocks" })
+            ]
+          }),
+          P.length === 0 ? o.jsxs("div", {
+            className: "card",
+            style: { textAlign: "center", padding: "36px 16px", color: "var(--text-muted)" },
+            children: [
+              o.jsx(pc, { size: 32, style: { margin: "0 auto 8px auto", opacity: .5 } }),
+              o.jsx("div", { style: { fontSize: "14.5px", fontWeight: 600, color: "var(--text-secondary)" }, children: "No raw material logs yet" }),
+              o.jsx("div", { style: { fontSize: "12px", marginTop: "4px" }, children: "Deductions will be automatically recorded when you log finished goods production." })
+            ]
+          }) : P.map(S => {
+            const D = oe.get(S.materialKey),
+                  isBase = S.type === "opening_balance",
+                  isRestock = S.type === "restock_in" || (!isBase && S.delta > 0),
+                  F = S.delta >= 0;
+            return o.jsxs("div", {
+              className: "card",
+              style: { padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", borderLeft: isBase ? "3px solid #38bdf8" : isRestock ? "3px solid #34d399" : "3px solid #f87171" },
+              children: [
+                o.jsxs("div", {
+                  children: [
+                    o.jsxs("div", {
+                      style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" },
+                      children: [
+                        isBase ? o.jsxs("span", { className: "badge badge-info", style: { fontSize: "10.5px" }, children: [o.jsx(mc, { size: 11 }), " Baseline Stock"] }) :
+                        isRestock ? o.jsx("span", { className: "badge badge-success", style: { fontSize: "10.5px" }, children: "+ Restock Intake" }) :
+                        o.jsx("span", { className: "badge badge-neutral", style: { fontSize: "10.5px" }, children: "- Auto Recipe Deduction" }),
+                        o.jsx("strong", { style: { fontSize: "14px", color: "#f8fafc" }, children: D ? D.name : S.materialKey })
+                      ]
+                    }),
+                    o.jsxs("div", {
+                      style: { fontSize: "11.5px", color: "var(--text-muted)", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" },
+                      children: [
+                        o.jsxs("span", { children: [o.jsx(ni, { size: 11, style: { verticalAlign: "middle" } }), " ", S.date] }),
+                        o.jsxs("span", { children: ["By: ", S.enteredBy] }),
+                        S.source && o.jsxs("span", { style: { color: "var(--brand-400)", fontWeight: 600 }, children: ["📍 ", S.source] }),
+                        S.totalCost && S.totalCost > 0 ? o.jsxs("span", { style: { color: "#34d399", fontWeight: 700 }, children: ["Tsh ", Number(S.totalCost).toLocaleString(), S.unitPrice ? " (" + Number(S.unitPrice).toLocaleString() + " / unit)" : ""] }) : null,
+                        S.note && o.jsxs("span", { style: { color: "var(--text-secondary)" }, children: ['"', S.note, '"'] })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 },
+                  children: [
+                    o.jsx("div", {
+                      style: { textAlign: "right" },
+                      children: o.jsxs("span", { style: { fontSize: "16px", fontWeight: 800, fontFamily: "var(--font-mono)", color: isBase ? "#38bdf8" : (F ? "#34d399" : "#f87171") }, children: [F ? "+" : "", S.delta, " ", S.unit] })
+                    }),
+                    o.jsxs("button", {
+                      type: "button",
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        handleDeleteRawMovement(S);
+                      },
+                      className: "btn btn-ghost btn-sm",
+                      style: {
+                        padding: "6px 8px",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.35)",
+                        borderRadius: "6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        background: "rgba(239, 68, 68, 0.08)",
+                        cursor: "pointer"
+                      },
+                      title: "Delete this raw material log",
+                      children: [
+                        o.jsx(Yp, { size: 13 }),
+                        o.jsx("span", { children: "Delete" })
+                      ]
+                    })
+                  ]
+                })
+              ]
+            }, S.id);
+          })
+        ]
+      }),
+
+      // Movement Details Modal
       le && o.jsx("div", {
         className: "modal-overlay",
         onClick: () => he(null),
         children: o.jsxs("div", {
           className: "modal-content",
           onClick: S => S.stopPropagation(),
-          style: { padding: "20px" },
+          style: { padding: "22px" },
           children: [
             o.jsxs("div", {
-              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" },
+              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
               children: [
                 o.jsxs("div", {
                   style: { display: "flex", alignItems: "center", gap: "8px" },
                   children: [
-                    o.jsx(xx, { size: 18, color: "var(--brand-400)" }),
-                    o.jsx("h3", { style: { fontSize: "16.5px", fontWeight: 700 }, children: le.isRaw ? "Raw Material Ledger Record" : "Movement Ledger Record" })
+                    o.jsx(xx, { size: 20, color: "var(--brand-400)" }),
+                    o.jsx("h3", { style: { fontSize: "17px", fontWeight: 700 }, children: "Movement Ledger Record" })
                   ]
                 }),
                 o.jsx("button", { onClick: () => he(null), className: "btn btn-ghost btn-sm", children: o.jsx(Yn, { size: 18 }) })
               ]
             }),
-
-            le.isRaw ? (
-              // Raw Material Details View
-              o.jsxs("div", {
-                style: { display: "flex", flexDirection: "column", gap: "8px" },
-                children: [
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Type" }),
-                      O(le.type, true)
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Material" }),
-                      o.jsx("span", { style: { fontWeight: 700 }, children: ((N = oe.get(le.materialKey)) == null ? void 0 : N.name) || le.materialKey })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Quantity" }),
-                      o.jsxs("span", { style: { fontWeight: 700, fontFamily: "var(--font-mono)", color: le.delta >= 0 ? "#34d399" : "#f97316" }, children: [
-                        le.delta >= 0 ? "+" : "", le.delta, " ", le.unit
-                      ]})
-                    ]
-                  }),
-                  le.source && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Source / Supplier" }),
-                      o.jsx("span", { style: { fontWeight: 600, color: "var(--brand-400)" }, children: le.source })
-                    ]
-                  }),
-                  le.totalCost && le.totalCost > 0 && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Total Cost" }),
-                      o.jsxs("span", { style: { fontWeight: 700, color: "#34d399" }, children: ["Tsh ", formatMoney(le.totalCost)] })
-                    ]
-                  }),
-                  le.related_batch_id && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Related Batch" }),
-                      o.jsx("span", { fontFamily: "var(--font-mono)", fontSize: "11px", children: le.related_batch_id })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Entered By" }),
-                      o.jsx("span", { style: { fontWeight: 600 }, children: le.enteredBy || le.entered_by || "Supervisor" })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Date & Timestamp" }),
-                      o.jsxs("span", { style: { fontSize: "11.5px", color: "var(--text-secondary)" }, children: [le.date, " (", le.created_at ? new Date(le.created_at).toLocaleTimeString() : "N/A", ")"] })
-                    ]
-                  }),
-                  le.note && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Notes" }),
-                      o.jsx("span", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: le.note })
-                    ]
-                  })
-                ]
-              })
-            ) : (
-              // Finished Goods Details View
-              o.jsxs("div", {
-                style: { display: "flex", flexDirection: "column", gap: "8px" },
-                children: [
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Type" }),
-                      o.jsxs("div", { style: { display: "flex", gap: "6px" }, children: [O(le.type, false), z(le.qc_status)] })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Product" }),
-                      o.jsx("span", { style: { fontWeight: 700 }, children: ((N = Pe.get(le.item_id)) == null ? void 0 : N.name) || le.item_id })
-                    ]
-                  }),
-                  le.color && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Color" }),
-                      o.jsx(xr, { color: le.color, size: "sm", showCount: !1 })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Quantity in Pieces" }),
-                      o.jsxs("span", { style: { fontWeight: 700, fontFamily: "var(--font-mono)" }, children: [le.quantity_pcs, " pcs"] })
-                    ]
-                  }),
-                  le.quantity_sqm !== null && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Quantity in Sqm" }),
-                      o.jsxs("span", { style: { fontWeight: 700, color: "var(--brand-400)", fontFamily: "var(--font-mono)" }, children: [le.quantity_sqm, " sqm"] })
-                    ]
-                  }),
-                  le.computed_materials_deducted && o.jsxs("div", {
-                    style: { padding: "8px 10px", background: "var(--bg-input)", borderRadius: "8px", marginTop: "4px" },
-                    children: [
-                      o.jsx("div", { style: { fontSize: "11.5px", fontWeight: 700, marginBottom: "4px", color: "var(--brand-400)" }, children: "⚡ Auto-Deducted Raw Materials:" }),
-                      o.jsxs("div", {
-                        style: { fontSize: "11.5px", color: "var(--text-secondary)" },
-                        children: [
-                          "• Cement: ", o.jsxs("strong", { children: [le.computed_materials_deducted.cementBags, " bags"] }), " (50kg)", o.jsx("br", {}),
-                          "• Sand: ", o.jsxs("strong", { children: [le.computed_materials_deducted.sandBuckets, " buckets"] }), o.jsx("br", {}),
-                          "• Chipping: ", o.jsxs("strong", { children: [le.computed_materials_deducted.chippingBuckets, " buckets"] }),
-                          le.computed_materials_deducted.chemicalLiters > 0 && o.jsxs("div", { children: ["• Dawa: ", o.jsxs("strong", { children: [le.computed_materials_deducted.chemicalLiters, " L"] })] }),
-                          le.computed_materials_deducted.pigmentRedKg > 0 && o.jsxs("div", { children: ["• Red Pigment: ", o.jsxs("strong", { children: [le.computed_materials_deducted.pigmentRedKg, " kg"] })] })
-                        ]
-                      })
-                    ]
-                  }),
-                  (le.customer_name || le.total_price || le.total_amount) && o.jsxs("div", {
-                    style: { padding: "8px 10px", background: "var(--bg-input)", borderRadius: "8px", marginTop: "4px" },
-                    children: [
-                      o.jsx("div", { style: { fontSize: "11.5px", fontWeight: 700, marginBottom: "4px", color: "#f87171" }, children: "🏷️ Sales & Dispatch Info:" }),
-                      o.jsxs("div", {
-                        style: { fontSize: "11.5px", color: "var(--text-secondary)" },
-                        children: [
-                          le.customer_name && o.jsxs("div", { children: ["• Customer: ", o.jsx("strong", { children: le.customer_name })] }),
-                          (le.total_price || le.total_amount) && o.jsxs("div", { children: ["• Total Amount: ", o.jsxs("strong", { style: { color: "#34d399" }, children: ["Tsh ", formatMoney(le.total_price || le.total_amount)] })] }),
-                          le.price_per_unit && o.jsxs("div", { children: ["• Price / unit: ", o.jsxs("strong", { children: ["Tsh ", formatMoney(le.price_per_unit)] })] }),
-                          le.invoice_no && o.jsxs("div", { children: ["• Invoice #: ", o.jsx("strong", { children: le.invoice_no })] })
-                        ]
-                      })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Entered By" }),
-                      o.jsx("span", { style: { fontWeight: 600 }, children: le.entered_by })
-                    ]
-                  }),
-                  o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Date & Timestamp" }),
-                      o.jsxs("span", { style: { fontSize: "11.5px", color: "var(--text-secondary)" }, children: [le.date, " (", le.created_at ? new Date(le.created_at).toLocaleTimeString() : "N/A", ")"] })
-                    ]
-                  }),
-                  le.note && o.jsxs("div", {
-                    style: { display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-subtle)" },
-                    children: [
-                      o.jsx("span", { style: { fontSize: "12.5px", color: "var(--text-muted)" }, children: "Notes" }),
-                      o.jsx("span", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: le.note })
-                    ]
-                  })
-                ]
-              })
-            ),
-
             o.jsxs("div", {
-              style: { marginTop: "16px", display: "flex", gap: "10px" },
+              style: { display: "flex", flexDirection: "column", gap: "10px" },
+              children: [
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Type" }),
+                    o.jsxs("div", { style: { display: "flex", gap: "6px" }, children: [O(le.type), z(le.qc_status)] })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Product" }),
+                    o.jsx("span", { style: { fontWeight: 700 }, children: ((N = Pe.get(le.item_id)) == null ? void 0 : N.name) || le.item_id })
+                  ]
+                }),
+                le.color && o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Color" }),
+                    o.jsx(xr, { color: le.color, size: "sm", showCount: !1 })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Quantity in Pieces" }),
+                    o.jsxs("span", { style: { fontWeight: 700, fontFamily: "var(--font-mono)" }, children: [le.quantity_pcs, " pcs"] })
+                  ]
+                }),
+                le.quantity_sqm !== null && o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Quantity in Sqm" }),
+                    o.jsxs("span", { style: { fontWeight: 700, color: "var(--brand-400)", fontFamily: "var(--font-mono)" }, children: [le.quantity_sqm, " sqm"] })
+                  ]
+                }),
+                le.computed_materials_deducted && o.jsxs("div", {
+                  style: { padding: "10px", background: "var(--bg-input)", borderRadius: "8px", marginTop: "6px" },
+                  children: [
+                    o.jsx("div", { style: { fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "var(--brand-400)" }, children: "⚡ Auto-Deducted Raw Materials:" }),
+                    o.jsxs("div", {
+                      style: { fontSize: "12px", color: "var(--text-secondary)" },
+                      children: [
+                        "• Cement: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.cementBags, " bags"] }),
+                        " (50kg)",
+                        o.jsx("br", {}),
+                        "• Sand: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.sandBuckets, " buckets"] }),
+                        o.jsx("br", {}),
+                        "• Chipping: ",
+                        o.jsxs("strong", { children: [le.computed_materials_deducted.chippingBuckets, " buckets"] }),
+                        le.computed_materials_deducted.chemicalLiters > 0 && o.jsxs("div", { children: ["• Dawa: ", o.jsxs("strong", { children: [le.computed_materials_deducted.chemicalLiters, " L"] })] }),
+                        le.computed_materials_deducted.pigmentRedKg > 0 && o.jsxs("div", { children: ["• Red Pigment: ", o.jsxs("strong", { children: [le.computed_materials_deducted.pigmentRedKg, " kg"] })] })
+                      ]
+                    })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Entered By" }),
+                    o.jsx("span", { style: { fontWeight: 600 }, children: le.entered_by })
+                  ]
+                }),
+                o.jsxs("div", {
+                  style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" },
+                  children: [
+                    o.jsx("span", { style: { fontSize: "13px", color: "var(--text-muted)" }, children: "Date & Timestamp" }),
+                    o.jsxs("span", { style: { fontSize: "12px", color: "var(--text-secondary)" }, children: [le.date, " (", le.created_at ? new Date(le.created_at).toLocaleTimeString() : "N/A", ")"] })
+                  ]
+                })
+              ]
+            }),
+            o.jsxs("div", {
+              style: { marginTop: "18px", display: "flex", gap: "10px" },
               children: [
                 o.jsxs("button", {
                   type: "button",
                   onClick: () => {
                     const toDelete = le;
                     he(null);
-                    if (toDelete.isRaw) handleDeleteRawMovement(toDelete);
-                    else handleDeleteMovement(toDelete);
+                    handleDeleteMovement(toDelete);
                   },
                   className: "btn btn-ghost",
-                  style: { color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.35)", background: "rgba(239, 68, 68, 0.08)", display: "flex", alignItems: "center", gap: "6px", padding: "7px 12px", fontSize: "12px", fontWeight: 700 },
+                  style: { color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.35)", background: "rgba(239, 68, 68, 0.08)", display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", fontSize: "13px", fontWeight: 700 },
                   children: [
-                    o.jsx(Yp, { size: 14 }),
+                    o.jsx(Yp, { size: 15 }),
                     o.jsx("span", { children: "Delete Entry" })
                   ]
                 }),
