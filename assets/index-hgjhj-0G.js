@@ -591,18 +591,16 @@ const Bv=({children:s})=>{
         }
       }
 
-      // 2. Reconcile Finished Goods Movements (Merging uncommitted local rows)
+      // 2. Reconcile Finished Goods Movements (Merging truly pending local rows only)
       if(movsRes.status==='fulfilled' && movsRes.value){
         isConnected = !0;
         const cloudMovs = movsRes.value;
+        const pendingQueue = readQueue(QUEUE_KEYS.MOVEMENTS) || [];
+        const pendingIds = new Set(pendingQueue.map(m => m.id));
         E(prev => {
           const cloudIds = new Set(cloudMovs.map(m=>m.id));
-          const localUncommitted = prev.filter(m=>!cloudIds.has(m.id));
-          if(localUncommitted.length > 0){
-            localUncommitted.forEach(m => enqueueItem(QUEUE_KEYS.MOVEMENTS, m));
-            return [...localUncommitted, ...cloudMovs];
-          }
-          return cloudMovs;
+          const localUncommitted = prev.filter(m => !cloudIds.has(m.id) && pendingIds.has(m.id));
+          return [...localUncommitted, ...cloudMovs];
         });
       }
 
@@ -618,18 +616,16 @@ const Bv=({children:s})=>{
         }
       }
 
-      // 4. Reconcile Raw Material Movements
+      // 4. Reconcile Raw Material Movements (Merging truly pending raw rows only)
       if(rawMovsRes.status==='fulfilled' && rawMovsRes.value){
         isConnected = !0;
         const cloudRawMovs = rawMovsRes.value;
+        const pendingRawQueue = readQueue(QUEUE_KEYS.RAW_MOVEMENTS) || [];
+        const pendingRawIds = new Set(pendingRawQueue.map(m => m.id));
         L(prev => {
           const cloudIds = new Set(cloudRawMovs.map(m=>m.id));
-          const localUncommitted = prev.filter(m=>!cloudIds.has(m.id));
-          if(localUncommitted.length > 0){
-            localUncommitted.forEach(m => enqueueItem(QUEUE_KEYS.RAW_MOVEMENTS, mapRawMovementToDb(m)));
-            return [...localUncommitted, ...cloudRawMovs];
-          }
-          return cloudRawMovs;
+          const localUncommitted = prev.filter(m => !cloudIds.has(m.id) && pendingRawIds.has(m.id));
+          return [...localUncommitted, ...cloudRawMovs];
         });
       }
 
@@ -1094,10 +1090,10 @@ const Bv=({children:s})=>{
           ce = [],
           Oe = V.map((_e, Ue)=>{
             const K = x.find(Ae => Ae.id===_e.item_id);
-            let be = _e.computed_materials_deducted || null;
+            let be = _e.materials_used || _e.computed_materials_deducted || null;
             if(_e.type==="production_in" && K && _e.quantity_pcs > 0){
-              be = Pa(K, _e.quantity_pcs, _e.color);
-              ce.push({item:K, pieces:_e.quantity_pcs, color:_e.color});
+              if (!be) be = Pa(K, _e.quantity_pcs, _e.color);
+              ce.push({item:K, pieces:_e.quantity_pcs, color:_e.color, materialsUsed:_e.materials_used || _e.computed_materials_deducted});
             }
             return {
               ..._e,
@@ -1109,9 +1105,28 @@ const Bv=({children:s})=>{
             };
           });
 
-    // 1. Perform Recipe Deductions for Production
+    // 1. Perform Recipe Deductions for Production (Exact user feed, no approximations)
     if(ce.length > 0){
-      const _e = lg(ce);
+      let _e;
+      const exactEntries = ce.filter(c => c.materialsUsed);
+      if(exactEntries.length > 0){
+        _e = {cementBags:0, sandBuckets:0, chippingBuckets:0, aggregateBuckets:0, chemicalLiters:0, pigmentRedKg:0, pigmentGreyKg:0, pigmentBlackKg:0};
+        for(const entry of exactEntries){
+          const m = entry.materialsUsed;
+          _e.cementBags += Number(m.cement_bags || m.cementBags || 0);
+          _e.sandBuckets += Number(m.sand_buckets || m.sandBuckets || 0);
+          _e.chippingBuckets += Number(m.chipping_buckets || m.chippingBuckets || 0);
+          _e.aggregateBuckets += Number(m.aggregate_buckets || m.aggregateBuckets || 0);
+          _e.chemicalLiters += Number(m.chemical_liters || m.chemicalLiters || 0);
+          if(m.pigment_red_kg) _e.pigmentRedKg += Number(m.pigment_red_kg);
+          else if(entry.color && entry.color.toLowerCase() === "red") _e.pigmentRedKg += Number(m.pigment_kg || 0);
+          if(m.pigment_black_kg) _e.pigmentBlackKg += Number(m.pigment_black_kg);
+          else if(entry.color && entry.color.toLowerCase() === "black") _e.pigmentBlackKg += Number(m.pigment_kg || 0);
+        }
+        for(const k in _e){ _e[k] = Number(_e[k].toFixed(2)); }
+      } else {
+        _e = lg(ce);
+      }
       await he(_e, J, `Batch production of ${ce.length} product entries (${V.reduce((Ue,K)=>Ue+(K.quantity_pcs||0),0)} pcs)`);
     }
 
@@ -1231,6 +1246,29 @@ const Bv=({children:s})=>{
         localStorage.setItem(cp, JSON.stringify(list.filter(mov => !predicate(mov))));
       }
     } catch(err){}
+    const batchIdsToRevert = new Set(removedMovs.map(m => m.batch_id).filter(Boolean));
+    if(target && target.batch_id) batchIdsToRevert.add(target.batch_id);
+    if(batchIdsToRevert.size > 0){
+      let removedRawMovs = [];
+      w(prev => {
+        removedRawMovs = prev.filter(rm => batchIdsToRevert.has(rm.relatedBatchId));
+        return prev.filter(rm => !batchIdsToRevert.has(rm.relatedBatchId));
+      });
+      if(removedRawMovs.length > 0){
+        k(prev => prev.map(mat => {
+          const matched = removedRawMovs.filter(rm => rm.materialKey === mat.key || (mat.legacyKeys && mat.legacyKeys.includes(rm.materialKey)));
+          if(matched.length > 0){
+            const restored = matched.reduce((sum, rm) => sum + (Number(rm.quantity) || 0), 0);
+            return {
+              ...mat,
+              currentBalance: Number((mat.currentBalance + restored).toFixed(2)),
+              lastUpdated: new Date().toISOString()
+            };
+          }
+          return mat;
+        }));
+      }
+    }
     const client = Ht();
     if(client && removedMovs.length > 0){
       try {
@@ -1244,8 +1282,7 @@ const Bv=({children:s})=>{
         Y(!1);
         console.warn("Supabase deleteMovements error:", err);
       }
-    }
-    return removedMovs;
+    }return removedMovs;
   },[]);
 
   // Calculation of active stock balances by color & reorder status
@@ -5077,7 +5114,7 @@ ProductionCapacityPlannerView = ({
 },
 
 _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
-  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f, totalFactoryMolds:totalMolds, todayMoldsInUse:moldsUsed, overallMoldUtilizationPct:moldsPct} = Vt();
+  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f, totalFactoryMolds:totalMolds, todayMoldsInUse:moldsUsed, overallMoldUtilizationPct:moldsPct, rawMaterials:rawMaterialsList} = Vt();
   const [prodTab, setProdTab] = B.useState("batch_logging");
   const m = B.useMemo(() => new Date().toISOString().split("T")[0], []);
   const [g, _] = B.useState(m);
@@ -5086,8 +5123,6 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   const [A, L] = B.useState("");
   const [w, E] = B.useState(() => {
     if (s && a.some(item => item.id === s)) return s;
-    const lastProd = c && c.find(m => m.type === "production_in" && !m.is_residual);
-    if (lastProd && a.some(item => item.id === lastProd.item_id)) return lastProd.item_id;
     return "";
   });
   const [j, k] = B.useState("Standard");
@@ -5105,6 +5140,58 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   const [ue, P] = B.useState(!1);
   const [y, O] = B.useState(null);
   const [showColorDropdown, setShowColorDropdown] = B.useState(!1);
+
+  // Requirement 2 & 3: Ref for cement input and auto direct helper
+  const cementInputRef = B.useRef(null);
+  const focusCementInput = B.useCallback(() => {
+    if (cementInputRef.current) {
+      cementInputRef.current.focus();
+      try {
+        cementInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      } catch(err) {}
+    }
+  }, []);
+
+  // Requirement 1: Cement balance and stock calculations
+  const cementMat = B.useMemo(() => {
+    return (rawMaterialsList || []).find(m => m.key === "cement" || (m.legacyKeys && m.legacyKeys.includes("cement_50kg"))) || null;
+  }, [rawMaterialsList]);
+
+  const currentCementStock = B.useMemo(() => {
+    return cementMat ? Number(Number(cementMat.currentBalance || 0).toFixed(2)) : 0;
+  }, [cementMat]);
+
+  // Requirement 2: Disable mouse wheel input and disallow letters into numbers input
+  const handleWheelBlur = B.useCallback((e) => {
+    e.currentTarget.blur();
+    if (e.cancelable) e.preventDefault();
+  }, []);
+
+  const handleNumericKeyDown = B.useCallback((e, allowDecimal = true) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const navKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Tab", "Enter", "Home", "End"];
+    if (navKeys.includes(e.key)) return;
+    if (allowDecimal && (e.key === "." || e.key === "Decimal")) {
+      if (e.currentTarget.value.includes(".")) {
+        e.preventDefault();
+      }
+      return;
+    }
+    // Block non-digit keys, e, E, +, -, etc.
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  }, []);
+
+  B.useEffect(() => {
+    const onGlobalWheel = (e) => {
+      if (document.activeElement && (document.activeElement.type === "number" || document.activeElement.classList.contains("mono"))) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener("wheel", onGlobalWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onGlobalWheel);
+  }, []);
 
   const z = B.useMemo(() => hg(a, c), [a, c]);
 
@@ -5605,7 +5692,12 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
     if (he === "main") {
       E(product.id);
       const pColors = product.colors && Array.isArray(product.colors) ? product.colors.filter(c => c && c.trim() && c.toLowerCase() !== "standard") : [];
-      k(pColors.length > 0 ? pColors[0] : "Standard");
+      const chosenColor = pColors.length > 0 ? pColors[0] : "Standard";
+      k(chosenColor);
+      // Requirement 3: If a product and color are selected auto direct user to input cement qty
+      if (pColors.length <= 1) {
+        setTimeout(focusCementInput, 60);
+      }
     } else if (he === "residual" && oe) {
       const rMeta = lt(product);
       const rWastani = product.wastani_per_bag || (rMeta == null ? void 0 : rMeta.wastaniPcsPerBag) || 50;
@@ -5717,7 +5809,9 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
         chipping_buckets: scaledMaterials.chippingBuckets,
         aggregate_buckets: scaledMaterials.aggregateBuckets,
         chemical_liters: scaledMaterials.chemicalLiters,
-        pigment_kg: scaledMaterials.pigmentKg
+        pigment_kg: scaledMaterials.pigmentKg,
+        pigment_red_kg: (j && (j.toLowerCase() === "red" || j.toLowerCase() === "maroon")) ? scaledMaterials.pigmentKg : 0,
+        pigment_black_kg: (j && (j.toLowerCase() === "black" || j.toLowerCase() === "grey" || j.toLowerCase() === "gray")) ? scaledMaterials.pigmentKg : 0
       },
       residuals: formattedResiduals,
       averagePcsPerBag: F > 0 ? Number((P_num / F).toFixed(1)) : 0,
@@ -5739,7 +5833,9 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
       setStagedBatches(prev => [...prev, newBatch]);
     }
 
-    // Reset inputs to blank
+    // Requirement 3: "If the users add first batch to lrdger the product selection should always reset to select product."
+    E("");
+    k("Standard");
     b("");
     L("");
     fe([]);
@@ -5794,13 +5890,21 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
 
   const aggregateMaterialsUsed = B.useMemo(() => {
     return stagedBatches.reduce((acc, b) => {
-      acc.cement += b.cementBags || 0;
-      acc.sand += (b.materialsUsed && b.materialsUsed.sand_buckets) || 0;
-      acc.chipping += (b.materialsUsed && b.materialsUsed.chipping_buckets) || 0;
-      acc.aggregate += (b.materialsUsed && b.materialsUsed.aggregate_buckets) || 0;
-      acc.chemical += (b.materialsUsed && b.materialsUsed.chemical_liters) || 0;
+      acc.cement = Number((acc.cement + (Number(b.cementBags) || 0)).toFixed(2));
+      acc.sand = Number((acc.sand + Number((b.materialsUsed && b.materialsUsed.sand_buckets) || 0)).toFixed(2));
+      acc.chipping = Number((acc.chipping + Number((b.materialsUsed && b.materialsUsed.chipping_buckets) || 0)).toFixed(2));
+      acc.aggregate = Number((acc.aggregate + Number((b.materialsUsed && b.materialsUsed.aggregate_buckets) || 0)).toFixed(2));
+      acc.chemical = Number((acc.chemical + Number((b.materialsUsed && b.materialsUsed.chemical_liters) || 0)).toFixed(2));
+      acc.pigment = Number((acc.pigment + Number((b.materialsUsed && b.materialsUsed.pigment_kg) || 0)).toFixed(2));
+      const bRed = Number((b.materialsUsed && b.materialsUsed.pigment_red_kg) || (b.color && (b.color.toLowerCase().includes("red") || b.color.toLowerCase().includes("maroon")) ? (b.materialsUsed && b.materialsUsed.pigment_kg) : 0) || 0);
+      const bBlack = Number((b.materialsUsed && b.materialsUsed.pigment_black_kg) || (b.color && (b.color.toLowerCase().includes("black") || b.color.toLowerCase().includes("grey")) ? (b.materialsUsed && b.materialsUsed.pigment_kg) : 0) || 0);
+      acc.pigmentRed = Number((acc.pigmentRed + bRed).toFixed(2));
+      acc.pigmentBlack = Number((acc.pigmentBlack + bBlack).toFixed(2));
+      if (acc.pigmentRed === 0 && acc.pigmentBlack === 0 && acc.pigment > 0) {
+        acc.pigmentRed = acc.pigment;
+      }
       return acc;
-    }, { cement: 0, sand: 0, chipping: 0, aggregate: 0, chemical: 0 });
+    }, { cement: 0, sand: 0, chipping: 0, aggregate: 0, chemical: 0, pigment: 0, pigmentRed: 0, pigmentBlack: 0 });
   }, [stagedBatches]);
 
   const expectedInventoryAdditions = B.useMemo(() => {
@@ -6171,7 +6275,11 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                           o.jsx("select", {
                             id: "product-color-select",
                             value: j,
-                            onChange: ev => k(ev.target.value),
+                            onChange: ev => {
+                              k(ev.target.value);
+                              // Requirement 3: Auto direct to input cement qty
+                              setTimeout(focusCementInput, 60);
+                            },
                             "aria-label": "Select Product Color",
                             style: {
                               fontSize: "12px",
@@ -6463,16 +6571,21 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                             children: [
                               o.jsx("label", { style: { fontSize: "13px", fontWeight: 700, color: "#f8fafc", display: "block", marginBottom: "6px" }, children: "Cement bags" }),
                               o.jsx("input", {
+                                ref: cementInputRef,
                                 type: "number",
                                 step: "0.5",
                                 min: "0",
                                 className: "input mono",
                                 style: { width: "100%", height: "54px", fontSize: "24px", fontWeight: 800, color: "#f8fafc", background: "var(--bg-input)", borderColor: "var(--border-subtle)", borderRadius: "8px", padding: "0 14px" },
                                 value: x,
+                                onWheel: handleWheelBlur,
+                                onKeyDown: e => handleNumericKeyDown(e, true),
                                 onChange: K => {
-                                  let val = K.target.value;
+                                  let val = K.target.value.replace(/[^0-9.]/g, "");
+                                  const parts = val.split(".");
+                                  if (parts.length > 2) val = parts[0] + "." + parts.slice(1).join("");
                                   if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
-                                    val = val.replace(/^0+(?=\d)/, "");
+                                    val = val.replace(/^0+(?=d)/, "");
                                   }
                                   b(val);
                                 },
@@ -6489,10 +6602,12 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                                 className: "input mono",
                                 style: { width: "100%", height: "54px", fontSize: "24px", fontWeight: 800, color: "#34d399", background: "var(--bg-input)", borderColor: "var(--border-subtle)", borderRadius: "8px", padding: "0 14px" },
                                 value: A,
+                                onWheel: handleWheelBlur,
+                                onKeyDown: e => handleNumericKeyDown(e, false),
                                 onChange: K => {
-                                  let val = K.target.value;
-                                  if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
-                                    val = val.replace(/^0+(?=\d)/, "");
+                                  let val = K.target.value.replace(/[^0-9]/g, "");
+                                  if (val.length > 1 && val.startsWith("0")) {
+                                    val = val.replace(/^0+(?=d)/, "");
                                   }
                                   L(val);
                                 },
@@ -6664,10 +6779,12 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                             className: "input mono",
                             style: { fontSize: "14px", fontWeight: 700, height: "34px", padding: "0 10px" },
                             value: item.quantity_pcs,
+                            onWheel: handleWheelBlur,
+                            onKeyDown: e => handleNumericKeyDown(e, false),
                             onChange: ev => {
-                              let val = ev.target.value;
-                              if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
-                                val = val.replace(/^0+(?=\d)/, "");
+                              let val = ev.target.value.replace(/[^0-9]/g, "");
+                              if (val.length > 1 && val.startsWith("0")) {
+                                val = val.replace(/^0+(?=d)/, "");
                               }
                               handleUpdateResidualQty(item.id, val);
                             },
@@ -7025,41 +7142,59 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                   children: [
                     o.jsx("span", { style: { fontSize: "12px", fontWeight: 700, color: "var(--brand-400)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: "6px" }, children: "2. Total Raw Materials Consumed" }),
                     o.jsxs("div", {
-                      style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "8px" },
+                      style: { display: "flex", alignItems: "stretch", gap: "6px", width: "100%", boxSizing: "border-box" },
                       children: [
                         o.jsxs("div", {
-                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
                           children: [
-                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Cement" }),
-                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [aggregateMaterialsUsed.cement, " bags"] })
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Cement" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.cement, " bags"] }),
+                            o.jsxs("div", {
+                              style: { fontSize: "9.5px", color: "rgba(255, 255, 255, 0.45)", marginTop: "2px", whiteSpace: "nowrap" },
+                              children: ["Stock : ", Number((currentCementStock - aggregateMaterialsUsed.cement).toFixed(1))]
+                            })
                           ]
                         }),
                         o.jsxs("div", {
-                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
                           children: [
-                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Sand (Mchanga)" }),
-                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [aggregateMaterialsUsed.sand, " bkt"] })
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Sand (Mchanga)" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.sand, " bkt"] })
                           ]
                         }),
                         aggregateMaterialsUsed.chipping > 0 ? o.jsxs("div", {
-                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
                           children: [
-                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Chipping" }),
-                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [aggregateMaterialsUsed.chipping, " bkt"] })
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Chipping" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.chipping, " bkt"] })
                           ]
                         }) : null,
                         aggregateMaterialsUsed.aggregate > 0 ? o.jsxs("div", {
-                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
                           children: [
-                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Kokoto (Agg.)" }),
-                            o.jsxs("strong", { style: { fontSize: "16px", color: "#f8fafc", fontFamily: "var(--font-mono)" }, children: [aggregateMaterialsUsed.aggregate, " bkt"] })
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Kokoto (Agg.)" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#f8fafc", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.aggregate, " bkt"] })
                           ]
                         }) : null,
                         aggregateMaterialsUsed.chemical > 0 ? o.jsxs("div", {
-                          style: { background: "rgba(0,0,0,0.3)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center" },
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
                           children: [
-                            o.jsx("span", { style: { fontSize: "10.5px", color: "var(--text-muted)", display: "block" }, children: "Chemical (Dawa)" }),
-                            o.jsxs("strong", { style: { fontSize: "16px", color: "#38bdf8", fontFamily: "var(--font-mono)" }, children: [aggregateMaterialsUsed.chemical, " L"] })
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Chemical (Dawa)" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#38bdf8", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.chemical, " L"] })
+                          ]
+                        }) : null,
+                        aggregateMaterialsUsed.pigmentRed > 0 ? o.jsxs("div", {
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Rangi (Red)" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#f87171", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.pigmentRed, " kg"] })
+                          ]
+                        }) : null,
+                        aggregateMaterialsUsed.pigmentBlack > 0 ? o.jsxs("div", {
+                          style: { background: "rgba(0,0,0,0.3)", padding: "8px 6px", borderRadius: "8px", border: "1px solid var(--border-subtle)", textAlign: "center", flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" },
+                          children: [
+                            o.jsx("span", { style: { fontSize: "10px", color: "var(--text-muted)", display: "block", marginBottom: "2px", whiteSpace: "nowrap" }, children: "Rangi (Black)" }),
+                            o.jsxs("strong", { style: { fontSize: "14px", color: "#94a3b8", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }, children: [aggregateMaterialsUsed.pigmentBlack, " kg"] })
                           ]
                         }) : null
                       ]
@@ -9123,12 +9258,25 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
   });
 },w1=()=>{const{items:s,movements:t,addMovementsBatch:r,staffName:a,resetProductBaseline,deleteMovements}=Vt(),handleUndoPreviousEntries=async()=>{const M=t.filter(ee=>ee.type==="opening_balance");if(M.length===0){if(Object.keys(f).some(ee=>f[ee]&&parseFloat(f[ee])>0)){const ee=window.confirm("You have unsaved baseline entries typed in the form.\n\nDo you want to undo/clear these unsaved inputs?");ee&&(m({}),window.alert("✓ Unsaved baseline inputs cleared."))}else window.alert("No previous baseline entries found to undo.");return}const ee=M[M.length-1];let le=[];ee.batch_id?le=M.filter(he=>he.batch_id===ee.batch_id):ee.created_at&&(le=M.filter(he=>he.created_at===ee.created_at)),le.length===0&&(le=[ee]);const he=Array.from(new Set(le.map(Pe=>{const oe=s.find(ue=>ue.id===Pe.item_id);return oe?oe.name:"Product"}))).join(", "),Pe=window.confirm(`Undo previous baseline entry for:\n${he} (${le.length} ${le.length===1?"record":"records"})?\n\nThis will remove the baseline record and restore the values into the form inputs for editing.`);if(!Pe)return;deleteMovements&&await deleteMovements({ids:le.map(oe=>oe.id),batch_id:ee.batch_id}),m(oe=>{const ue={...oe};for(const P of le){const y=`${P.item_id}_${P.color||"Standard"}`,O=g[P.item_id]||"pcs",z=O==="sqm"&&P.quantity_sqm!=null?P.quantity_sqm:P.quantity_pcs;ue[y]=String(z)}return ue}),L(null),window.alert(`✓ Undid previous baseline entries for ${he}.\n\nValues have been restored to the form inputs for editing.`)},handleUndoItemBaseline=async M=>{const ee=t.filter(le=>le.type==="opening_balance"&&le.item_id===M.id);if(ee.length===0)return;const le=window.confirm(`Undo baseline entry for "${M.name}"?\n\nThis will remove its baseline record and restore its values into the form so you can edit it.`);if(!le)return;deleteMovements&&await deleteMovements(ee.map(he=>he.id)),m(he=>{const Pe={...he};for(const oe of ee){const G=`${oe.item_id}_${oe.color||"Standard"}`,ue=g[oe.item_id]||"pcs",P=ue==="sqm"&&oe.quantity_sqm!=null?oe.quantity_sqm:oe.quantity_pcs;Pe[G]=String(P)}return Pe}),window.alert(`✓ Baseline entry for "${M.name}" removed and restored to form inputs.`)},handleResetBaseline=async()=>{const confirmed=window.confirm("Are you sure you want to RESET all product baseline opening balances?\n\nThis will clear all product baseline records and entries so you can test baselining again from scratch.");if(!confirmed)return;m({});L(null);if(resetProductBaseline)await resetProductBaseline();window.alert("✓ Product baseline opening balances have been reset.");},c=B.useMemo(()=>new Date().toISOString().split("T")[0],[]),[u,d]=B.useState(c),[f,m]=B.useState({}),[g,_]=B.useState({}),[x,b]=B.useState(!0),[w,E]=B.useState({"Floor Tiles":!0,"Wall Tiles":!0,Slabs:!0,"Paving Blocks":!0,"Mifuniko / Covers":!0,Kerbstones:!0,Culverts:!0,Matofali:!0,"Hollow Blocks":!0,Chipping:!0,"Poles / Other":!0}),[j,k]=B.useState(!1),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set;for(const ee of t)ee.type==="opening_balance"&&M.add(ee.item_id);return M},[t]),H=B.useMemo(()=>{const M={};for(const ee of s)M[ee.category]||(M[ee.category]=[]),M[ee.category].push(ee);for(const ee of Object.keys(M))M[ee].sort((le,he)=>{const Pe=W.has(le.id),oe=W.has(he.id);if(!Pe&&oe)return-1;if(Pe&&!oe)return 1;const G=hn(le),ue=hn(he);return G!==ue?G-ue:le.name.localeCompare(he.name)});return M},[s,W]),ne=M=>{E(ee=>({...ee,[M]:!ee[M]}))},Y=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!0;E(M)},ae=()=>{const M={};for(const ee of Object.keys(H))M[ee]=!1;E(M)},fe=(M,ee,le)=>{const he=`${M}_${ee}`;m(Pe=>({...Pe,[he]:le}))},xe=B.useMemo(()=>{const M=[];for(const[ee,le]of Object.entries(f)){const he=parseFloat(le);if(!isNaN(he)&&he>0){const[Pe,oe]=ee.split("_"),G=s.find(ue=>ue.id===Pe);if(G){const ue=oe==="Standard"?null:oe,P=g[G.id]||"pcs";let y=he,O=null;G.unit==="sqm"&&G.pcs_per_sqm&&G.pcs_per_sqm>0&&(P==="sqm"?(O=he,y=Math.round(he*G.pcs_per_sqm)):(y=he,O=Number((he/G.pcs_per_sqm).toFixed(2)))),M.push({item:G,color:ue,qtyPcs:y,qtySqm:O,unitUsed:P})}}}return M},[f,g,s]),Ie=async()=>{if(xe.length===0){alert("Please enter at least one opening stock balance amount before saving.");return}k(!0);const M=crypto.randomUUID?crypto.randomUUID():`baseline-${Date.now()}`,ee=xe.map(he=>{const Pe=he.item.unit==="sqm"&&he.qtySqm!==null?he.qtySqm:he.qtyPcs;return{item_id:he.item.id,type:"opening_balance",color:he.color,quantity_pcs:he.qtyPcs,quantity_sqm:he.qtySqm,delta:Pe,date:u,note:`Physical baseline as of ${u}`,batch_id:M}}),le=await r(ee);if(k(!1),le){try{Ga({particleCount:50,spread:60,origin:{y:.6},colors:["#3b82f6","#10b981","#f97316"]})}catch{}L(ee.length),m({})}},Be=s.filter(M=>!W.has(M.id)).length;return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",flexWrap:"wrap"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800},children:"Opening Balance Baseline"}),o.jsx("p",{style:{fontSize:"12.5px",color:"var(--text-muted)"},children:"Bulk physical count setup. Update a few products, save, and return anytime."})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:handleResetBaseline,className:"btn btn-ghost btn-sm",style:{border:"1px solid rgba(239, 68, 68, 0.4)",color:"#ef4444",padding:"9px 13px",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Reset all product baseline opening balances for testing",children:[o.jsx("span",{children:"🔄"}),o.jsx("span",{children:"Reset Baseline"})]}),o.jsxs("button",{type:"button",onClick:handleUndoPreviousEntries,className:"btn btn-secondary btn-sm",style:{border:"1px solid rgba(249, 115, 22, 0.4)",color:"var(--brand-400)",background:"rgba(249, 115, 22, 0.08)",padding:"9px 13px",fontSize:"13px",fontWeight:700,display:"flex",alignItems:"center",gap:"6px",borderRadius:"var(--radius-md)"},title:"Undo previous baseline entries and restore values to inputs",children:[o.jsx(Mx,{size:15}),o.jsx("span",{children:"Undo Previous Entries"})]}),o.jsxs("button",{type:"button",disabled:j||xe.length===0,onClick:Ie,className:"btn btn-primary btn-lg",style:{padding:"10px 20px",fontSize:"14.5px",fontWeight:700,borderRadius:"var(--radius-md)",boxShadow:"0 4px 16px rgba(249, 115, 22, 0.4)",display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(gc,{size:18}),o.jsx("span",{children:j?"Saving...":xe.length>0?`Save (${xe.length})`:"Save Opening Balance"})]})]})]}),o.jsxs("div",{className:"card",style:{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"12px 14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx("span",{style:{fontSize:"12.5px",fontWeight:600,color:"var(--text-secondary)"},children:"As-Of Date:"}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-input)",padding:"6px 10px",borderRadius:"var(--radius-md)",border:"1px solid var(--border-subtle)"},children:[o.jsx(ni,{size:14,color:"var(--brand-400)"}),o.jsx("input",{type:"date",value:u,onChange:M=>d(M.target.value),style:{background:"transparent",border:"none",color:"#f8fafc",fontFamily:"var(--font-mono)",fontSize:"13px",fontWeight:600,outline:"none"}})]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("button",{type:"button",onClick:()=>b(M=>!M),className:`btn btn-secondary btn-sm ${x?"btn-primary":""}`,style:{fontSize:"12px",padding:"5px 10px"},children:[x?o.jsx(fx,{size:14}):o.jsx(gx,{size:14}),o.jsx("span",{children:x?`Hiding Baselined (${Be} left)`:`Showing All (${s.length})`})]}),o.jsx("button",{type:"button",onClick:Y,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Expand"}),o.jsx("button",{type:"button",onClick:ae,className:"btn btn-ghost btn-sm",style:{fontSize:"11.5px",padding:"4px 8px"},children:"Collapse"})]})]}),A!==null&&o.jsxs("div",{className:"card",style:{background:"rgba(16, 185, 129, 0.15)",borderColor:"rgba(16, 185, 129, 0.4)",padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px"},children:[o.jsx(pn,{size:20,color:"#10b981"}),o.jsxs("div",{children:[o.jsxs("div",{style:{fontWeight:700,fontSize:"13.5px",color:"#34d399"},children:[A," Opening Balances Saved Successfully!"]}),o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-secondary)"},children:"Saved products have been moved down. Only remaining unbaselined products appear above."})]})]}),o.jsx("button",{onClick:()=>L(null),className:"btn btn-ghost btn-sm",children:"✕"})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:Object.entries(H).map(([M,ee])=>{const le=w[M]??!0,he=x?ee.filter(oe=>!W.has(oe.id)):ee;if(he.length===0&&x)return null;const Pe=ee.filter(oe=>!W.has(oe.id)).length;return o.jsxs("div",{className:"card",style:{padding:"0",overflow:"hidden",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>ne(M),style:{width:"100%",padding:"12px 16px",background:"var(--bg-surface-elevated)",border:"none",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",color:"#f8fafc"},children:o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px"},children:[le?o.jsx(wc,{size:17,color:"var(--brand-400)"}):o.jsx(nx,{size:17,color:"var(--text-muted)"}),o.jsx("span",{style:{fontSize:"15px",fontWeight:700},children:M}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:Pe>0?`${Pe} to baseline`:"All baselined ✓"})]})}),le&&o.jsx("div",{style:{padding:"12px 14px",display:"flex",flexDirection:"column",gap:"10px",background:"var(--bg-surface-card)"},children:he.map(oe=>{const G=W.has(oe.id),ue=oe.unit==="sqm",P=oe.pcs_per_sqm!==null&&oe.pcs_per_sqm>0,y=oe.colors&&oe.colors.length>0,O=g[oe.id]||"pcs";return o.jsxs("div",{style:{background:G?"rgba(15, 23, 42, 0.6)":"var(--bg-input)",border:`1px solid ${G?"rgba(16, 185, 129, 0.3)":"var(--border-subtle)"}`,borderRadius:"var(--radius-md)",padding:"12px",opacity:G?.75:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"8px",flexWrap:"wrap"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{style:{fontSize:"14.5px",fontWeight:700,color:"#f8fafc"},children:oe.name}),G&&o.jsxs("div",{style:{display:"inline-flex",alignItems:"center",gap:"6px"},children:[o.jsx("span",{className:"badge badge-success",style:{fontSize:"10px",padding:"1px 5px"},children:"Baselined ✓"}),o.jsxs("button",{type:"button",onClick:()=>handleUndoItemBaseline(oe),className:"btn btn-ghost btn-sm",style:{padding:"2px 7px",fontSize:"11px",color:"var(--brand-400)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"4px",display:"inline-flex",alignItems:"center",gap:"3px"},title:`Undo baseline entry for ${oe.name}`,children:[o.jsx(Mx,{size:11}),o.jsx("span",{children:"Undo"})]})]})]}),ue&&o.jsx("div",{style:{display:"flex",alignItems:"center",gap:"6px"},children:P?o.jsxs("div",{style:{display:"inline-flex",background:"var(--bg-surface)",padding:"2px",borderRadius:"var(--radius-full)",border:"1px solid var(--border-subtle)"},children:[o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"pcs"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="pcs"?"var(--brand-500)":"transparent",color:O==="pcs"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Pcs"}),o.jsx("button",{type:"button",onClick:()=>_(z=>({...z,[oe.id]:"sqm"})),style:{padding:"3px 8px",fontSize:"11px",fontWeight:700,borderRadius:"var(--radius-full)",border:"none",background:O==="sqm"?"var(--brand-500)":"transparent",color:O==="sqm"?"#fff":"var(--text-muted)",cursor:"pointer",transition:"all 0.1s ease"},children:"Sqm (m²)"})]}):o.jsx("span",{style:{fontSize:"11px",color:"#fbbf24"},children:"(sqm conversion not set)"})})]}),o.jsx("div",{style:{display:"grid",gridTemplateColumns:y?"repeat(auto-fill, minmax(130px, 1fr))":"1fr",gap:"8px"},children:(y?oe.colors:["Standard"]).map(z=>{const T=`${oe.id}_${z}`,N=f[T]||"",S=parseFloat(N);let D=null;return ue&&P&&!isNaN(S)&&S>0&&(O==="sqm"?D=`=${Math.round(S*oe.pcs_per_sqm)} pcs`:D=`=${(S/oe.pcs_per_sqm).toFixed(2)} m²`),o.jsxs("div",{style:{background:"var(--bg-surface-elevated)",padding:"8px 10px",borderRadius:"6px",border:"1px solid var(--border-subtle)"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"4px"},children:[y?o.jsx(xr,{color:z,size:"sm",showCount:!1}):o.jsxs("span",{style:{fontSize:"11px",color:"var(--text-muted)"},children:["Opening (",O,")"]}),D&&o.jsx("span",{style:{fontSize:"11px",color:"var(--text-accent)",fontFamily:"var(--font-mono)",fontWeight:700},children:D})]}),o.jsx("input",{type:"number",inputMode:"decimal",min:"0",step:O==="sqm"?"any":"1",className:"input-field mono",placeholder:`0 ${O}`,style:{height:"38px",minHeight:"38px",padding:"6px 8px",fontSize:"14px",fontWeight:600},value:N,onChange:F=>fe(oe.id,z,F.target.value)})]},z)})})]},oe.id)})})]},M)})}),xe.length>0&&o.jsxs("div",{className:"card-elevated",style:{position:"sticky",bottom:"calc(var(--nav-bottom-height) + 10px)",zIndex:30,padding:"12px 16px",background:"rgba(15, 23, 42, 0.96)",backdropFilter:"blur(12px)",border:"1px solid rgba(249, 115, 22, 0.4)",boxShadow:"0 8px 32px rgba(0, 0, 0, 0.8)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{children:[o.jsx("div",{style:{fontSize:"11.5px",color:"var(--text-muted)"},children:"Pending Baseline Entries:"}),o.jsxs("div",{style:{fontSize:"16px",fontWeight:800,color:"var(--brand-400)"},children:[xe.length," items ready to save"]})]}),o.jsxs("button",{type:"button",disabled:j,onClick:Ie,className:"btn btn-primary",children:[o.jsx(gc,{size:16}),o.jsx("span",{children:j?"Saving...":"Save Opening Balance"})]})]})]})},S1=()=>{const{items:s,updateItem:t,addItem:r,deleteItem}=Vt(),handleDeleteProduct=async M=>{if(!M)return;const ee=window.confirm(`Are you sure you want to delete "${M.name}"?\n\nThis will permanently remove it from the product catalog.`);if(!ee)return;deleteItem&&await deleteItem(M.id),x&&x.id===M.id&&(b(null),E(!1)),ne(`Product "${M.name}" deleted successfully.`)},[a,c]=B.useState(""),[u,d]=B.useState("All"),[f,m]=B.useState("size_asc"),[g,_]=B.useState(!1),[x,b]=B.useState(null),[w,E]=B.useState(!1),[j,k]=B.useState({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"}),[A,L]=B.useState(null),W=B.useMemo(()=>{const M=new Set(s.map(ee=>ee.category));return["All",...Array.from(M)]},[s]),H=B.useMemo(()=>{const M=s.filter(ee=>{const le=u==="All"||ee.category===u,he=ee.name.toLowerCase().includes(a.toLowerCase())||ee.category.toLowerCase().includes(a.toLowerCase());return le&&he});switch(f){case"size_asc":return Hl(M,!0);case"size_desc":return Hl(M,!1);case"name_asc":return[...M].sort((ee,le)=>ee.name.localeCompare(le.name));case"name_desc":return[...M].sort((ee,le)=>le.name.localeCompare(ee.name));case"molds_desc":return[...M].sort((ee,le)=>(le.moldCount||0)-(ee.moldCount||0));case"wastani_desc":return[...M].sort((ee,le)=>(le.wastani_per_bag||0)-(ee.wastani_per_bag||0));default:return Hl(M,!0)}},[s,u,a,f]),ne=M=>{L(M),setTimeout(()=>L(null),3500)},Y=M=>{const ee=lt(M);b(M),k({name:M.name,category:M.category,unit:M.unit,pcs_per_sqm:M.pcs_per_sqm!==null&&M.pcs_per_sqm!==void 0?M.pcs_per_sqm.toString():"",colors:M.colors||[],reorder_level:M.reorder_level!==null&&M.reorder_level!==void 0?M.reorder_level.toString():"",wastani_per_bag:(M.wastani_per_bag||ee.wastaniPcsPerBag||50).toString(),moldCount:(M.moldCount||ee.moldCount||50).toString(),mold_size:M.mold_size||ee.size||""})},ae=()=>{E(!0),k({name:"",category:"Floor Tiles",unit:"sqm",pcs_per_sqm:"",colors:["White","Red","Grey"],reorder_level:"100",wastani_per_bag:"37",moldCount:"100",mold_size:"40x40"})},fe=M=>{k(ee=>{const he=ee.colors.includes(M)?ee.colors.filter(Pe=>Pe!==M):[...ee.colors,M];return{...ee,colors:he}})},xe=async M=>{if(M.preventDefault(),!x)return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe={...x,name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null};await t(oe),b(null),ne(`Updated "${oe.name}" successfully!`)},Ie=async M=>{if(M.preventDefault(),!j.name.trim())return;const ee=j.pcs_per_sqm?parseFloat(j.pcs_per_sqm):null,le=j.reorder_level?parseFloat(j.reorder_level):null,he=j.wastani_per_bag?parseFloat(j.wastani_per_bag):null,Pe=j.moldCount?parseInt(j.moldCount,10):null,oe=await r({name:j.name.trim(),category:j.category,unit:j.unit,pcs_per_sqm:ee,colors:j.colors,reorder_level:le,wastani_per_bag:he,moldCount:Pe,mold_size:j.mold_size.trim()||null,recipe_id:"floor_tiles_vibro"});oe&&(E(!1),ne(`Created new product "${oe.name}"!`))},Be=M=>{switch(M){case"size_asc":return"Size: Smallest → Largest (Default)";case"size_desc":return"Size: Largest → Smallest";case"name_asc":return"Name: A → Z";case"name_desc":return"Name: Z → A";case"molds_desc":return"Fleet Capacity (Highest)";case"wastani_desc":return"Wastani Output (Highest)";default:return"Size: Smallest → Largest"}};return o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"14px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"},children:[o.jsxs("div",{children:[o.jsx("h1",{style:{fontSize:"20px",fontWeight:800,letterSpacing:"-0.02em",color:"#f8fafc"},children:"Products Registry"}),o.jsx("p",{style:{fontSize:"12px",color:"var(--text-muted)"},children:"Structural size catalog, mold fleet specifications & wastani ratios"})]}),o.jsxs("button",{onClick:ae,className:"btn btn-primary",style:{padding:"8px 14px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px"},children:[o.jsx(vr,{size:16}),o.jsx("span",{children:"New Product"})]})]}),A&&o.jsxs("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"var(--status-success-bg)",border:"1px solid rgba(16, 185, 129, 0.4)",color:"var(--status-success)",fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"8px"},children:[o.jsx(pn,{size:16}),o.jsx("span",{children:A})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsxs("div",{className:"search-wrapper",style:{flex:1},children:[o.jsx(ii,{className:"search-icon",size:18}),o.jsx("input",{type:"text",className:"input-field search-input",placeholder:"Search catalog products...",value:a,onChange:M=>c(M.target.value)}),a&&o.jsx("button",{className:"search-clear",onClick:()=>c(""),children:"✕"})]}),o.jsxs("div",{style:{position:"relative"},children:[o.jsxs("button",{onClick:()=>_(!g),className:"btn btn-secondary",style:{height:"42px",padding:"0 12px",fontSize:"13px",display:"flex",alignItems:"center",gap:"6px",background:"var(--bg-surface-elevated)",border:g?"1px solid var(--brand-500)":"1px solid var(--border-subtle)",color:"var(--brand-400)"},title:"Change Registry Sort Order",children:[o.jsx(Kp,{size:15}),o.jsx("span",{style:{fontWeight:700},children:"Sort / Filter"})]}),g&&o.jsxs("div",{style:{position:"absolute",right:0,top:"48px",width:"260px",backgroundColor:"var(--bg-surface-card)",border:"1px solid rgba(249, 115, 22, 0.3)",borderRadius:"12px",boxShadow:"0 15px 30px rgba(0,0,0,0.7)",zIndex:50,padding:"8px",display:"flex",flexDirection:"column",gap:"4px"},children:[o.jsx("div",{style:{fontSize:"11px",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",padding:"6px 8px"},children:"Registry Sort Order"}),["size_asc","size_desc","name_asc","name_desc","molds_desc","wastani_desc"].map(M=>o.jsxs("button",{onClick:()=>{m(M),_(!1)},style:{textAlign:"left",padding:"8px 10px",borderRadius:"6px",border:"none",background:f===M?"rgba(249, 115, 22, 0.2)":"transparent",color:f===M?"var(--brand-400)":"var(--text-primary)",fontSize:"12px",fontWeight:f===M?700:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsx("span",{children:Be(M)}),f===M&&o.jsx(Gp,{size:14,color:"var(--brand-400)"})]},M))]})]})]}),o.jsx("div",{className:"filter-tabs",children:W.map(M=>o.jsx("button",{onClick:()=>d(M),className:`filter-tab ${u===M?"active":""}`,children:M},M))})]}),o.jsxs("div",{style:{display:"flex",flexDirection:"column",gap:"10px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"},children:[o.jsxs("div",{style:{fontSize:"13px",fontWeight:600,color:"var(--text-secondary)"},children:["All Catalog Products (",H.length,")"]}),o.jsx("div",{style:{fontSize:"11px",color:"var(--brand-400)",fontWeight:600},children:Be(f)})]}),o.jsx("div",{style:{display:"flex",flexDirection:"column",gap:"8px"},children:H.map(M=>{const ee=lt(M),le=M.unit==="sqm",he=M.pcs_per_sqm||ee.pcsPerSqm||null,Pe=he!==null&&he>0,oe=M.moldCount||ee.moldCount||0,G=M.wastani_per_bag||ee.wastaniPcsPerBag||50,ue=Ua(M);return o.jsxs("div",{className:"card",style:{padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px"},children:[o.jsxs("div",{style:{flex:1},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"},children:[o.jsx("span",{style:{fontSize:"15px",fontWeight:700,color:"#f8fafc"},children:M.name}),o.jsx("span",{className:"badge badge-neutral",style:{fontSize:"11px",padding:"1px 6px"},children:M.category}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:"rgba(249, 115, 22, 0.15)",border:"1px solid rgba(249, 115, 22, 0.3)",color:"var(--brand-400)",fontWeight:700},children:["📐 Size: ",ue]}),o.jsxs("span",{className:"badge",style:{fontSize:"11px",padding:"1px 6px",background:le?"rgba(56, 189, 248, 0.15)":"rgba(148, 163, 184, 0.15)",color:le?"#7dd3fc":"#94a3b8"},children:["Unit: ",M.unit]})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"6px",fontSize:"12px",flexWrap:"wrap"},children:[o.jsxs("span",{style:{color:"var(--brand-400)",fontWeight:600},children:["⚖️ Wastani: ",G," pcs/bag"]}),o.jsxs("span",{style:{color:"#38bdf8",fontWeight:600},children:["🏭 Fleet: ",oe," molds"]}),le&&Pe&&o.jsxs("span",{style:{color:"var(--text-secondary)"},children:["(",he," pcs/m²)"]})]}),M.colors&&M.colors.length>0&&o.jsx("div",{style:{display:"flex",gap:"4px",marginTop:"6px"},children:M.colors.map(P=>o.jsx(xr,{color:P,size:"sm",showCount:!1},P))})]}),o.jsxs("div",{style:{display:"flex",alignItems:"center",gap:"6px",flexShrink:0},children:[o.jsxs("button",{onClick:()=>Y(M),className:"btn btn-secondary btn-sm",style:{padding:"6px 12px",fontSize:"12px"},children:[o.jsx(Ox,{size:13,color:"var(--brand-400)"}),o.jsx("span",{children:"Edit"})]}),o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(M),className:"btn btn-ghost btn-sm",style:{padding:"6px 10px",fontSize:"12px",color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.3)",borderRadius:"var(--radius-md)",display:"flex",alignItems:"center",gap:"4px"},title:`Delete ${M.name}`,children:[o.jsx(Yp,{size:13}),o.jsx("span",{children:"Delete"})]})]})]},M.id)})})]}),(x||w)&&o.jsx("div",{className:"modal-overlay",onClick:()=>{b(null),E(!1)},children:o.jsxs("div",{className:"modal-content",onClick:M=>M.stopPropagation(),style:{padding:"22px"},children:[o.jsxs("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"},children:[o.jsx("h3",{style:{fontSize:"18px",fontWeight:700},children:x?`Edit: ${x.name}`:"Add New Product"}),o.jsx("button",{onClick:()=>{b(null),E(!1)},className:"btn btn-ghost btn-sm",children:o.jsx(Yn,{size:18})})]}),o.jsxs("form",{onSubmit:x?xe:Ie,children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Product Name (as used in factory)"}),o.jsx("input",{type:"text",className:"input-field",value:j.name,onChange:M=>k({...j,name:M.target.value}),placeholder:"e.g. 40 Plain, Chuchu, 600R...",required:!0})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Category"}),o.jsx("select",{className:"input-field",value:j.category,onChange:M=>{const ee=M.target.value,le=["Floor Tiles","Wall Tiles","Slabs","Paving Blocks"].includes(ee);k({...j,category:ee,unit:le?"sqm":"pcs"})},children:ag.map(M=>o.jsx("option",{value:M,children:M},M))})]}),o.jsxs("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"},children:[o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Wastani (pcs / 50kg bag)"}),o.jsx("input",{type:"number",step:"any",min:"0.1",className:"input-field mono",value:j.wastani_per_bag,onChange:M=>k({...j,wastani_per_bag:M.target.value}),placeholder:"e.g. 37"})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Mold Fleet Count"}),o.jsx("input",{type:"number",step:"1",min:"1",className:"input-field mono",value:j.moldCount,onChange:M=>k({...j,moldCount:M.target.value}),placeholder:"e.g. 100"})]})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Unit of Measure"}),o.jsxs("div",{style:{display:"flex",gap:"8px"},children:[o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"sqm"}),className:`btn ${j.unit==="sqm"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Square Metre (sqm)"}),o.jsx("button",{type:"button",onClick:()=>k({...j,unit:"pcs"}),className:`btn ${j.unit==="pcs"?"btn-primary":"btn-secondary"}`,style:{flex:1},children:"Pieces (pcs)"})]})]}),j.unit==="sqm"&&o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:o.jsx("span",{children:"Pieces per Square Metre (pcs_per_sqm)"})}),o.jsx("input",{type:"number",step:"any",min:"0.01",className:"input-field mono",value:j.pcs_per_sqm,onChange:M=>k({...j,pcs_per_sqm:M.target.value}),placeholder:"e.g. 6 for 40x40 tiles, 11 for 30x30..."})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Applicable Color Variants"}),o.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"},children:og.map(M=>{const ee=j.colors.includes(M);return o.jsxs("button",{type:"button",onClick:()=>fe(M),className:`filter-tab ${ee?"active":""}`,style:{display:"flex",alignItems:"center",gap:"6px",padding:"6px 12px",fontSize:"12px"},children:[o.jsx("span",{className:`color-dot color-dot-${M}`}),o.jsx("span",{children:M}),ee&&o.jsx("span",{children:"✓"})]},M)})})]}),o.jsxs("div",{className:"input-group",children:[o.jsx("label",{className:"input-label",children:"Low Stock Reorder Threshold"}),o.jsx("input",{type:"number",min:"0",step:"1",className:"input-field mono",value:j.reorder_level,onChange:M=>k({...j,reorder_level:M.target.value}),placeholder:"e.g. 100"})]}),o.jsxs("div",{style:{display:"flex",gap:"10px",alignItems:"center",justifyContent:"space-between",marginTop:"16px",flexWrap:"wrap"},children:[x?o.jsxs("button",{type:"button",onClick:()=>handleDeleteProduct(x),className:"btn btn-ghost",style:{color:"var(--status-danger)",border:"1px solid rgba(239, 68, 68, 0.4)",display:"flex",alignItems:"center",gap:"6px",fontSize:"13px",padding:"8px 12px"},children:[o.jsx(Yp,{size:14}),o.jsx("span",{children:"Delete Product"})]}):o.jsx("div",{}),o.jsxs("div",{style:{display:"flex",gap:"10px"},children:[o.jsx("button",{type:"button",onClick:()=>{b(null),E(!1)},className:"btn btn-secondary",children:"Cancel"}),o.jsx("button",{type:"submit",className:"btn btn-primary",children:x?"Save Changes":"Create Product"})]})]})]})]})})]})},k1=()=>{
   var T,N;
-  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, resetLedger} = Vt();
-  const handleResetLedger = async () => {
-    const confirmed = window.confirm("Are you sure you want to RESET the ledger?\n\nThis will clear all movement records (finished goods & raw materials) from the ledger so you can test from a clean slate.");
+  const {movements:s, items:t, addMovement:r, staffName:a, rawMaterialMovements:c, rawMaterials:u, deleteMovements} = Vt();
+  const handleUndo = async () => {
+    if (!s || s.length === 0) {
+      window.alert("No recorded ledger entries found to undo.");
+      return;
+    }
+    const latest = s[0];
+    const targetMovs = latest.batch_id ? s.filter(m => m.batch_id === latest.batch_id) : [latest];
+    const itemNames = Array.from(new Set(targetMovs.map(m => {
+      const item = t.find(it => it.id === m.item_id);
+      return item ? item.name : "Item";
+    }))).join(", ");
+    const typeLabel = latest.type === "production_in" ? "Production" : latest.type === "opening_balance" ? "Baseline" : latest.type === "dispatch_out" ? "Dispatch" : "Movement";
+    const confirmed = window.confirm(`Undo last recorded ${typeLabel} entry for:\n${itemNames} (${targetMovs.length} ${targetMovs.length === 1 ? "record" : "records"} on ${latest.date})?\n\nThis will remove the transaction from the ledger and restore materials to inventory.`);
     if (!confirmed) return;
-    if (resetLedger) await resetLedger();
-    window.alert("✓ Ledger log has been reset.");
+    if (deleteMovements) {
+      await deleteMovements({ ids: targetMovs.map(m => m.id), batch_id: latest.batch_id });
+    }
+    window.alert(`✓ Successfully undid last ${typeLabel} entry for ${itemNames}.`);
   };
   const [d, f] = B.useState("finished_goods");
   const [m, g] = B.useState("");
@@ -9382,21 +9530,15 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           o.jsxs("div", {
             style: { display: "flex", alignItems: "center", gap: "8px" },
             children: [
-              o.jsxs("button", {
+              o.jsx("button", {
                 type: "button",
-                onClick: handleResetLedger,
-                className: "btn btn-ghost btn-sm",
-                style: { border: "1px solid rgba(239, 68, 68, 0.4)", color: "#ef4444", padding: "6px 10px", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", gap: "5px", borderRadius: "var(--radius-md)" },
-                title: "Reset all ledger records for testing",
-                children: [o.jsx("span", { children: "🔄" }), o.jsx("span", { children: "Reset Ledger" })]
-              }),
-              o.jsxs("button", {
-                onClick: () => W(!0),
+                onClick: handleUndo,
                 className: "btn btn-secondary btn-sm",
-                style: { gap: "4px" },
+                style: { gap: "6px", color: "var(--brand-400)", borderColor: "var(--border-subtle)" },
+                title: "Undo the last recorded transaction in the ledger",
                 children: [
-                  o.jsx(vr, { size: 14, color: "var(--brand-400)" }),
-                  o.jsx("span", { children: "Dispatch / Adjust" })
+                  o.jsx(Mx, { size: 14 }),
+                  o.jsx("span", { children: "Undo" })
                 ]
               })
             ]
@@ -9962,82 +10104,7 @@ b1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
         })
       }),
 
-      // Log Dispatch or Adjustment Modal
-      L && o.jsx("div", {
-        className: "modal-overlay",
-        onClick: () => W(!1),
-        children: o.jsxs("div", {
-          className: "modal-content",
-          onClick: S => S.stopPropagation(),
-          style: { padding: "22px" },
-          children: [
-            o.jsxs("div", {
-              style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
-              children: [
-                o.jsx("h3", { style: { fontSize: "18px", fontWeight: 700 }, children: "Log Dispatch or Stock Adjustment" }),
-                o.jsx("button", { onClick: () => W(!1), className: "btn btn-ghost btn-sm", children: o.jsx(Yn, { size: 18 }) })
-              ]
-            }),
-            o.jsxs("form", {
-              onSubmit: y,
-              children: [
-                o.jsxs("div", {
-                  className: "input-group",
-                  children: [
-                    o.jsx("label", { className: "input-label", children: "Movement Type" }),
-                    o.jsxs("div", {
-                      style: { display: "flex", gap: "8px" },
-                      children: [
-                        o.jsx("button", { type: "button", onClick: () => ne("dispatch_out"), className: `btn ${H === "dispatch_out" ? "btn-primary" : "btn-secondary"}`, style: { flex: 1, background: H === "dispatch_out" ? "var(--status-danger)" : void 0 }, children: "Dispatch Out (-)" }),
-                        o.jsx("button", { type: "button", onClick: () => ne("adjustment"), className: `btn ${H === "adjustment" ? "btn-primary" : "btn-secondary"}`, style: { flex: 1 }, children: "Adjustment (±)" })
-                      ]
-                    })
-                  ]
-                }),
-                o.jsxs("div", {
-                  className: "input-group",
-                  children: [
-                    o.jsx("label", { className: "input-label", children: "Product" }),
-                    o.jsx("select", {
-                      value: Y,
-                      onChange: S => ae(S.target.value),
-                      className: "input-field",
-                      children: t.map(S => o.jsxs("option", { value: S.id, children: [S.name, " (", S.category, ")"] }, S.id))
-                    })
-                  ]
-                }),
-                (G == null ? void 0 : G.colors) && G.colors.length > 0 && o.jsxs("div", {
-                  className: "input-group",
-                  children: [
-                    o.jsx("label", { className: "input-label", children: "Color Variant" }),
-                    o.jsx("select", {
-                      value: fe,
-                      onChange: S => xe(S.target.value),
-                      className: "input-field",
-                      children: G.colors.map(S => o.jsx("option", { value: S, children: S }, S))
-                    })
-                  ]
-                }),
-                o.jsxs("div", {
-                  className: "input-group",
-                  children: [
-                    o.jsx("label", { className: "input-label", children: "Quantity in Pieces (pcs)" }),
-                    o.jsx("input", { type: "number", min: "1", step: "1", required: !0, value: Ie, onChange: S => Be(S.target.value), className: "input-field mono", placeholder: "e.g. 50" })
-                  ]
-                }),
-                o.jsxs("div", {
-                  className: "input-group",
-                  children: [
-                    o.jsx("label", { className: "input-label", children: "Note / Customer / Reason" }),
-                    o.jsx("input", { type: "text", value: M, onChange: S => ee(S.target.value), className: "input-field", placeholder: "e.g. Dispatched to Site B, truck T123 ABC..." })
-                  ]
-                }),
-                o.jsx("button", { type: "submit", className: "btn btn-primary btn-lg", style: { width: "100%", marginTop: "8px" }, children: "Save Ledger Movement" })
-              ]
-            })
-          ]
-        })
-      })
+      null
     ]
   });
-},C1=()=>{const{isUnlocked:s}=Vt(),[t,r]=B.useState("dashboard"),[a,c]=B.useState(void 0),[u,d]=B.useState(!1);if(!s)return o.jsx(l1,{});const f=(m,g)=>{r(m),c(g)};return o.jsxs("div",{className:"app-layout",children:[o.jsx(a1,{onOpenAi:()=>d(!0)}),o.jsxs("main",{className:"main-content",children:[t==="dashboard"&&o.jsx(x1,{onNavigate:f}),t==="production"&&o.jsx(_1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="sales"&&o.jsx(b1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")}),t==="opening_balance"&&o.jsx(w1,{}),t==="items"&&o.jsx(S1,{}),t==="history"&&o.jsx(k1,{})]}),o.jsx("button",{type:"button",onClick:()=>d(!0),style:{position:"fixed",right:"16px",bottom:"calc(var(--nav-bottom-height) + 16px)",zIndex:45,width:"48px",height:"48px",borderRadius:"50%",background:"linear-gradient(135deg, #f97316, #9333ea)",border:"2px solid rgba(255, 255, 255, 0.2)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px rgba(249, 115, 22, 0.5), 0 0 15px rgba(147, 51, 234, 0.4)",cursor:"pointer",transition:"transform 0.15s ease"},title:"Ask STUMARCOT AI Agent",children:o.jsx(kc,{size:22,color:"#fff"})}),o.jsx(v1,{isOpen:u,onClose:()=>d(!1)}),o.jsx(o1,{currentTab:t,onTabChange:r})]})},j1=()=>o.jsx(Bv,{children:o.jsx(C1,{})});ig.createRoot(document.getElementById("root")).render(o.jsx(Xm.StrictMode,{children:o.jsx(j1,{})}));
+},C1=()=>{const{isUnlocked:s}=Vt(),[t,r]=B.useState("dashboard"),[a,c]=B.useState(void 0),[u,d]=B.useState(!1);if(!s)return o.jsx(l1,{});const f=(m,g)=>{r(m),c(g)};return o.jsxs("div",{className:"app-layout",children:[o.jsx(a1,{onOpenAi:()=>d(!0)}),o.jsxs("main",{className:"main-content",children:[o.jsx("div",{style:{display:t==="dashboard"?"block":"none",width:"100%"},children:o.jsx(x1,{onNavigate:f})}),o.jsx("div",{style:{display:t==="production"?"block":"none",width:"100%"},children:o.jsx(_1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")})}),o.jsx("div",{style:{display:t==="sales"?"block":"none",width:"100%"},children:o.jsx(b1,{prefillItemId:a,onClearPrefill:()=>c(void 0),onSuccess:()=>r("dashboard")})}),o.jsx("div",{style:{display:t==="opening_balance"?"block":"none",width:"100%"},children:o.jsx(w1,{})}),o.jsx("div",{style:{display:t==="items"?"block":"none",width:"100%"},children:o.jsx(S1,{})}),o.jsx("div",{style:{display:t==="history"?"block":"none",width:"100%"},children:o.jsx(k1,{})})]}),o.jsx("button",{type:"button",onClick:()=>d(!0),style:{position:"fixed",right:"16px",bottom:"calc(var(--nav-bottom-height) + 16px)",zIndex:45,width:"48px",height:"48px",borderRadius:"50%",background:"linear-gradient(135deg, #f97316, #9333ea)",border:"2px solid rgba(255, 255, 255, 0.2)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 24px rgba(249, 115, 22, 0.5), 0 0 15px rgba(147, 51, 234, 0.4)",cursor:"pointer",transition:"transform 0.15s ease"},title:"Ask STUMARCOT AI Agent",children:o.jsx(kc,{size:22,color:"#fff"})}),o.jsx(v1,{isOpen:u,onClose:()=>d(!1)}),o.jsx(o1,{currentTab:t,onTabChange:r})]})},j1=()=>o.jsx(Bv,{children:o.jsx(C1,{})});ig.createRoot(document.getElementById("root")).render(o.jsx(Xm.StrictMode,{children:o.jsx(j1,{})}));

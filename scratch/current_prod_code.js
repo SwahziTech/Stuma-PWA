@@ -1,5 +1,6 @@
 _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
-  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f} = Vt();
+  const {items:a, movements:c, addMovementsBatch:u, staffName:d, adminSettings:f, totalFactoryMolds:totalMolds, todayMoldsInUse:moldsUsed, overallMoldUtilizationPct:moldsPct} = Vt();
+  const [prodTab, setProdTab] = B.useState("batch_logging");
   const m = B.useMemo(() => new Date().toISOString().split("T")[0], []);
   const [g, _] = B.useState(m);
   // Point 3: all input boxes blank by default
@@ -850,18 +851,18 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
                 children: [
                   o.jsx("h1", {
                     style: { fontSize: "clamp(18px, 4vw, 22px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#f8fafc", margin: 0 },
-                    children: "Batch Production Logging"
+                    children: prodTab === "capacity_planner" ? "Production Capacity Planner" : "Batch Production Logging"
                   }),
                   o.jsx("span", {
                     className: "badge",
                     style: { background: "rgba(249, 115, 22, 0.15)", border: "1px solid rgba(249, 115, 22, 0.35)", color: "var(--brand-400)", fontSize: "11px", fontWeight: 700, padding: "3px 8px" },
-                    children: "Adaptive Recipe Engine"
+                    children: prodTab === "capacity_planner" ? "Fleet & Mix Engine" : "Adaptive Recipe Engine"
                   })
                 ]
               }),
               o.jsx("p", {
                 style: { fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" },
-                children: "Dynamic proportional recipe scaling & multi-output residual calibration"
+                children: prodTab === "capacity_planner" ? "Simulate mold turnaround cycles, production limits & material demand" : "Dynamic proportional recipe scaling & multi-output residual calibration"
               })
             ]
           }),
@@ -879,8 +880,83 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
           })
         ]
       }),
+      // PRODUCTION TOP TABS: Batch Logging vs Capacity Planner
+      o.jsxs("div", {
+        style: {
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "6px",
+          background: "var(--bg-surface-elevated)",
+          padding: "4px",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--border-subtle)"
+        },
+        children: [
+          o.jsxs("button", {
+            type: "button",
+            onClick: () => setProdTab("batch_logging"),
+            style: {
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "none",
+              fontSize: "13px",
+              fontWeight: 700,
+              background: prodTab === "batch_logging" ? "var(--brand-500)" : "transparent",
+              color: prodTab === "batch_logging" ? "#fff" : "var(--text-secondary)",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "7px"
+            },
+            children: [
+              o.jsx(fc, { size: 15 }),
+              o.jsx("span", { children: "Batch Logging" })
+            ]
+          }),
+          o.jsxs("button", {
+            type: "button",
+            onClick: () => setProdTab("capacity_planner"),
+            style: {
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "none",
+              fontSize: "13px",
+              fontWeight: 700,
+              background: prodTab === "capacity_planner" ? "var(--brand-500)" : "transparent",
+              color: prodTab === "capacity_planner" ? "#fff" : "var(--text-secondary)",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "7px"
+            },
+            children: [
+              o.jsx(qa, { size: 15 }),
+              o.jsx("span", { children: "Capacity Planner" })
+            ]
+          })
+        ]
+      }),
 
-      y && o.jsxs("div", {
+      // CAPACITY PLANNER VIEW
+      prodTab === "capacity_planner" && o.jsx(ProductionCapacityPlannerView, {
+        items: a,
+        totalFactoryMolds: totalMolds,
+        todayMoldsInUse: moldsUsed,
+        overallMoldUtilizationPct: moldsPct,
+        onStartProduction: (itemId) => {
+          E(itemId);
+          setProdTab("batch_logging");
+        }
+      }),
+
+      // BATCH LOGGING VIEW
+      prodTab === "batch_logging" && o.jsxs(o.Fragment, {
+        children: [
+          y && o.jsxs("div", {
         className: "card",
         style: { background: "linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.95))", borderColor: "rgba(16, 185, 129, 0.5)", padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 8px 24px rgba(16, 185, 129, 0.2)" },
         children: [
@@ -1810,9 +1886,11 @@ _1=({prefillItemId:s,onClearPrefill:t,onSuccess:r})=>{
             ]
           })
         ]
+      })
+        ]
       }),
 
-      // AUDIT & INVENTORY VERIFICATION POPUP MODAL
+// AUDIT & INVENTORY VERIFICATION POPUP MODAL
       showAuditModal && o.jsx("div", {
         className: "modal-overlay",
         onClick: () => setShowAuditModal(!1),
